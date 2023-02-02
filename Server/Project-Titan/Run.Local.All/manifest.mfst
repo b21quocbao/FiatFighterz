@@ -1,0 +1,6 @@
+﻿{
+  "localDb": true,
+  "local": true,
+  "dbPrefix": "local_",
+  "sandbox": true
+}
