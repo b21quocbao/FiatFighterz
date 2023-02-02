@@ -1,4 +1,4 @@
-# Trials of Titan
+# FiatFighterz
 
 `Source is provided as-is and contains known bad practices`
 
