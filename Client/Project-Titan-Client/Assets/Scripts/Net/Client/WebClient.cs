@@ -136,6 +136,22 @@ public static class WebClient
         SendRequest("v1/account/changename", dict, callback);
     }
 
+    public static void SendDisableNft(string accessToken, Action<Response<WebNameChangeResponse>> callback)
+    {
+        SendRequest("v1/account/disablenft", new Dictionary<string, string>()
+        {
+            { "token", Client.RsaEncrypt(accessToken) },
+        }, callback);
+    }
+
+    public static void SendGetNft(string accessToken, Action<Response<WebNameChangeResponse>> callback)
+    {
+        SendRequest("v1/account/getnft", new Dictionary<string, string>()
+        {
+            { "token", Client.RsaEncrypt(accessToken) },
+        }, callback);
+    }
+
     public static void SendLeaderboardDescribe(LeaderboardType type, Action<Response<WebLeaderboardResponse>> callback)
     {
         var dict = new Dictionary<string, string>()

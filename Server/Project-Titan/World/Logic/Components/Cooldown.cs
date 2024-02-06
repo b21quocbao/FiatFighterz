@@ -34,9 +34,9 @@ namespace World.Logic.Components
         }
         */
 
-        public Range period;
+        public MRange period;
 
-        public Range delay;
+        public MRange delay;
 
         public Cooldown(float period, float delay)
         {

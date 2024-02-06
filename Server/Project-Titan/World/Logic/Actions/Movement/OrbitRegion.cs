@@ -26,13 +26,13 @@ namespace World.Logic.Actions.Movement
 
     public class OrbitRegion : LogicAction<OrbitRegionValue>
     {
-        private Range speed;
+        private MRange speed;
 
-        private Range angle;
+        private MRange angle;
 
         private bool hasAngle = false;
 
-        private Range radius;
+        private MRange radius;
 
         private Cooldown calcCooldown = new Cooldown(0, 0);
 

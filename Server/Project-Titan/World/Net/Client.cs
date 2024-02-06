@@ -66,9 +66,9 @@ namespace World.Net
 
         #region Spam Checking
 
-        public SpamChecker chatSpamRegulator = new SpamChecker(6, 4, new Range(3, 9), 3);
+        public SpamChecker chatSpamRegulator = new SpamChecker(6, 4, new MRange(3, 9), 3);
 
-        public SpamChecker emoteSpamRegulator = new SpamChecker(8, 2, new Range(2, 6), 2);
+        public SpamChecker emoteSpamRegulator = new SpamChecker(8, 2, new MRange(2, 6), 2);
 
         #endregion
 

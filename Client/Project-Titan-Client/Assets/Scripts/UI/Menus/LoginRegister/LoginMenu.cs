@@ -23,6 +23,8 @@ public class LoginMenu : MonoBehaviour
 
     public GameObject accountMenu;
 
+    public GameObject walletConnectMenu;
+
     private WebClient.Response<WebLoginResponse> loginResponse;
 
     private WebClient.Response<WebLoginResponse> forgotResponse;
@@ -320,7 +322,7 @@ public class LoginMenu : MonoBehaviour
 #endif
 
                 gameObject.SetActive(false);
-                accountMenu.SetActive(true);
+                walletConnectMenu.SetActive(true);
             }
             describeResponse = null;
         }

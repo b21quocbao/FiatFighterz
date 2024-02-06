@@ -34,7 +34,7 @@ namespace World.Logic.Actions.Tiles
 
         private int joints = 0;
 
-        private Range jointAngle;
+        private MRange jointAngle;
 
         public override bool ReadParameterValue(string name, LogicScriptReader reader)
         {

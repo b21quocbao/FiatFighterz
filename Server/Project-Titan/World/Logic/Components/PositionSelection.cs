@@ -39,15 +39,15 @@ namespace World.Logic.Components
     {
         public override PositionSelectionType Type => PositionSelectionType.Circle;
 
-        private Range radius = new Range(0, 1);
+        private MRange radius = new MRange(0, 1);
 
-        private Range arc = new Range(0, AngleUtils.PI_2);
+        private MRange arc = new MRange(0, AngleUtils.PI_2);
 
-        private Range minionArcOffset = new Range(0, 0);
+        private MRange minionArcOffset = new MRange(0, 0);
 
         private float minionArcExp = 0;
 
-        public PositionCircleSelection(Range radius, Range arc, Range minionArcOffset)
+        public PositionCircleSelection(MRange radius, MRange arc, MRange minionArcOffset)
         {
             this.radius = radius;
             this.arc = arc;
@@ -115,13 +115,13 @@ namespace World.Logic.Components
 
         private float searchRadius = 8;
 
-        private Range angleOffset = 0;
+        private MRange angleOffset = 0;
 
-        private Range relativeAngleOffset = 0;
+        private MRange relativeAngleOffset = 0;
 
-        private Range distanceOffset = 0;
+        private MRange distanceOffset = 0;
 
-        private Range relativeDistanceOffset = 0;
+        private MRange relativeDistanceOffset = 0;
 
         public PositionRandomPlayerSelection() { }
 

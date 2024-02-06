@@ -70,7 +70,11 @@ namespace Utils.NET.Net.Web
         }
 
         private async void HandleContext(HttpListenerContext context)
-        { 
+        {
+            context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+            context.Response.Headers["Access-Control-Allow-Methods"] = "*";
+            context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+            Log.Write("Received Headers " + context.Request.HttpMethod);
             var query = new NameValueCollection();
             using (StreamReader rdr = new StreamReader(context.Request.InputStream))
                 query = HttpUtility.ParseQueryString(rdr.ReadToEnd());
@@ -118,6 +122,7 @@ namespace Utils.NET.Net.Web
                 Log.Write(e);
             }
 
+            Log.Write("Add cors Received Headers " + context.Response.Headers.ToString());
             context.Response.OutputStream.Close();
             context.Response.Close();
         }

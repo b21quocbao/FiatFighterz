@@ -31,7 +31,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The angle to offset from shooting at the player
         /// </summary>
-        private Range angleOffset;
+        private MRange angleOffset;
 
         /// <summary>
         /// The angle gap between projectiles

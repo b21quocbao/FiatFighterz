@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RadixEngineToolkit;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +8,9 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -78,6 +81,9 @@ namespace WebServer
             listener.AddHandler("v1/account/verified", HandleVerified);
             listener.AddHandler("v1/account/changename", HandleChangeName);
             listener.AddHandler("v1/account/forgot", HandleForgot);
+            listener.AddHandler("v1/account/disablenft", HandleDisableNft);
+            listener.AddHandler("v1/account/updatenft", HandleUpdateNft);
+            listener.AddHandler("v1/account/getnft", HandleGetNft);
 
             listener.AddHandler("v1/server/list", HandleServerList);
             listener.AddHandler("v1/server/update", HandleServerUpdate);
@@ -278,6 +284,209 @@ namespace WebServer
             }
         }
 
+        private async Task<object> HandleDisableNft(HttpListenerContext context, NameValueCollection query)
+        {
+            if (!rateLimiter.CanRequest(context.Request.RemoteEndPoint.Address))
+            {
+                return new WebNftResponse(WebNftResult.RateLimitReached, "");
+            }
+
+            var token = query["token"];
+
+            if (AnyNull(token))
+            {
+                return new WebNftResponse(WebNftResult.InvalidRequest, "");
+            }
+
+            token = DecryptString(token);
+
+            var loginResponse = await Database.Login(token, ServerName);
+            if (loginResponse.result != LoginResult.Success)
+            {
+                switch (loginResponse.result)
+                {
+                    case LoginResult.AccountInUse:
+                        return new WebNftResponse(WebNftResult.AccountInUse, "");
+                    default:
+                        return new WebNftResponse(WebNftResult.InternalServerError, "");
+                }
+            }
+
+            var account = loginResponse.account;
+            try
+            {
+                // The network ID to use for this example.
+                const byte networkId = 0x02;
+
+                // In this example we will use an ephemeral private key for the notary.
+                var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
+                    networkId
+                );
+
+                // Constructing the manifest
+                var manifestString = $"""
+                 CALL_METHOD
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "lock_fee"
+                     Decimal("100")
+                 ;
+                 CALL_METHOD
+                     Address("component_tdx_2_1cz248axxqkguf9gy7wq0wrpym8w5ugdg08uj5cwe7uulghs70mk88p")
+                     "disable"
+                     "{account.nftId}"
+                 ;
+                 CALL_METHOD
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "try_deposit_batch_or_refund"
+                     Expression("ENTIRE_WORKTOP")
+                     Enum<0u8>()
+                 ;
+                 """;
+                using var manifest = new TransactionManifest(
+                    Instructions.FromString(
+                        manifestString,
+                        networkId
+                    ),
+                    Array.Empty<byte[]>()
+                );
+                manifest.StaticallyValidate();
+
+                // Constructing the transaction
+                var currentEpoch = await GatewayApiClient.CurrentEpoch();
+                using var transaction =
+                    new TransactionBuilder()
+                        .Header(
+                            new TransactionHeader(
+                                networkId,
+                                currentEpoch,
+                                (currentEpoch + 2),
+                                Utils.RandomNonce(),
+                                publicKey,
+                                true,
+                                0
+                            )
+                        )
+                        .Manifest(
+                            manifest
+                        )
+                        .Message(
+                            new Message.None()
+                        )
+                        .NotarizeWithPrivateKey(
+                            privateKey
+                        );
+
+                // Printing out the transaction ID and then submitting the transaction to the network.
+                using var transactionId = transaction.IntentHash();
+                Console.WriteLine(
+                    $"Transaction ID: {transactionId.AsStr()}"
+                );
+
+                await GatewayApiClient.SubmitTransaction(
+                    transaction
+                );
+
+                privateKey.Dispose();
+
+                await Database.UpdateNft(account, "");
+
+                return new WebNftResponse(WebNftResult.Success, "");
+            }
+            finally
+            {
+                await Database.Logout(account, ServerName);
+            }
+        }
+
+
+        internal static class Utils
+        {
+            public static uint RandomNonce()
+            {
+                return (uint)RandomNumberGenerator.GetInt32(int.MaxValue);
+            }
+
+            public static Tuple<PrivateKey, RadixEngineToolkit.PublicKey, Address> NewAccount(byte networkId)
+            {
+                // Generating bytes through secure random to use for the private key of the account.
+                var hex = "08e8029cb817bae895a871a33b8e0e2f2bb99668a3a670780c6b23253606e606";
+                var privateKeyBytes = Enumerable.Range(0, hex.Length)
+                     .Where(x => x % 2 == 0)
+                     .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                     .ToArray();
+
+                // New private key, derive public key, and derive account address
+                var privateKey = PrivateKey.NewEd25519(
+                    privateKeyBytes
+                );
+                var publicKey = privateKey.PublicKey();
+                var accountAddress = Address.VirtualAccountAddressFromPublicKey(
+                    publicKey,
+                    networkId
+                );
+
+                return new Tuple<PrivateKey, RadixEngineToolkit.PublicKey, Address>(
+                    privateKey,
+                    publicKey,
+                    accountAddress
+                );
+            }
+        }
+
+        internal static class GatewayApiClient
+        {
+            public static async Task<ulong> CurrentEpoch()
+            {
+                var client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/status/gateway-status");
+                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                request.Headers.Add("accept", "application/json");
+                request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
+                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
+                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
+                request.Headers.Add("sec-ch-ua-mobile", "?0");
+                request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
+                request.Headers.Add("sec-fetch-dest", "empty");
+                request.Headers.Add("sec-fetch-mode", "cors");
+                request.Headers.Add("sec-fetch-site", "same-origin");
+                request.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                var responseJson = JObject.Parse(responseString);
+
+                return responseJson.Value<JObject>("ledger_state").Value<ulong>("epoch");
+            }
+
+            public static async Task SubmitTransaction(NotarizedTransaction notarizedTransaction)
+            {
+                var compiledNotarizedTransaction = notarizedTransaction.Compile();
+                string hex = BitConverter.ToString(compiledNotarizedTransaction).Replace("-", string.Empty);
+                /* Submit to the Gateway API */
+
+                var client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/transaction/submit");
+                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                request.Headers.Add("accept", "application/json");
+                request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
+                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
+                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
+                request.Headers.Add("sec-ch-ua-mobile", "?0");
+                request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
+                request.Headers.Add("sec-fetch-dest", "empty");
+                request.Headers.Add("sec-fetch-mode", "cors");
+                request.Headers.Add("sec-fetch-site", "same-origin");
+                request.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+
+                var content = new StringContent("{\n  \"notarized_transaction_hex\": \"" + hex + "\"\n}", null, "application/json");
+                request.Content = content;
+                await client.SendAsync(request);
+            }
+        }
+
         private TemplateString verifyHtml = new TemplateString(File.ReadAllText("Htmls/verify_email.html"), '*');
 
         private async Task<object> HandleVerify(HttpListenerContext context, NameValueCollection query)
@@ -405,6 +614,74 @@ namespace WebServer
             var response = await Database.ChangeName(fromName, toName, reservation, token, ServerName);
             Log.Write(response.result);
             return response;
+        }
+
+        private async Task<object> HandleUpdateNft(HttpListenerContext context, NameValueCollection query)
+        {
+            if (!rateLimiter.CanRequest(context.Request.RemoteEndPoint.Address))
+            {
+                return new WebNftResponse(WebNftResult.RateLimitReached, "");
+            }
+
+            var token = query["token"];
+
+            if (AnyNull(token))
+            {
+                return new WebNftResponse(WebNftResult.InvalidRequest, "");
+            }
+
+            token = DecryptString(token);
+
+            var loginResponse = await Database.Login(token, ServerName);
+            if (loginResponse.result != LoginResult.Success)
+            {
+                switch (loginResponse.result)
+                {
+                    case LoginResult.AccountInUse:
+                        return new WebNftResponse(WebNftResult.AccountInUse, "");
+                    default:
+                        return new WebNftResponse(WebNftResult.InternalServerError, "");
+                }
+            }
+
+            var account = loginResponse.account;
+
+            var nftId = query["nftId"];
+
+            if (AnyNullOrEmpty(nftId))
+            {
+                return new WebNftResponse(WebNftResult.InvalidRequest, "");
+            }
+
+            var response = await Database.UpdateNft(account, nftId);
+            Log.Write(response.result);
+            return response;
+        }
+
+        private async Task<object> HandleGetNft(HttpListenerContext context, NameValueCollection query)
+        {
+            if (!rateLimiter.CanRequest(context.Request.RemoteEndPoint.Address))
+            {
+                return new WebNameChangeResponse(WebNameChangeResult.InternalServerError, "");
+            }
+
+            var token = query["token"];
+
+            if (AnyNull(token))
+            {
+                return new WebNameChangeResponse(WebNameChangeResult.InvalidRequest, "");
+            }
+
+            token = DecryptString(token);
+
+            var loginResponse = await Database.Login(token, ServerName);
+            if (loginResponse.result != LoginResult.Success)
+            {
+                return new WebNameChangeResponse(WebNameChangeResult.InternalServerError, "");
+            }
+
+            var account = loginResponse.account;
+            return new WebNameChangeResponse(WebNameChangeResult.Success, account.nftId);
         }
 
         protected async Task SendHtml(HttpListenerContext context, string html)

@@ -27,7 +27,7 @@ namespace World.Logic.Actions.Movement
 
     public class MoveToRegion : LogicAction<MoveToRegionValue>
     {
-        private Range speed;
+        private MRange speed;
 
         private HashSet<Region> regions = new HashSet<Region>();
 

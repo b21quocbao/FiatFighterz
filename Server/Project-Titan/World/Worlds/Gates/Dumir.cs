@@ -128,7 +128,7 @@ namespace World.Worlds.Gates
             Log.Write("Generating Distance Fields...");
 
             var greenDistanceField = map.GetDistanceField(greenVillagePosition, out var maxDistance);
-            spawnPosition = map.RandomDistancePoint(greenDistanceField, new Range(maxDistance - 3, maxDistance));
+            spawnPosition = map.RandomDistancePoint(greenDistanceField, new MRange(maxDistance - 3, maxDistance));
 
             Log.Write($"Generated Distance Fields in {(DateTime.Now.Ticks - time) / TimeSpan.TicksPerSecond} sec.");
 

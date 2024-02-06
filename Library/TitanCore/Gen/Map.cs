@@ -389,7 +389,7 @@ namespace TitanCore.Gen
             return newMap;
         }
 
-        public Int2 RandomDistancePoint(int[,] distanceField, Range distance)
+        public Int2 RandomDistancePoint(int[,] distanceField, MRange distance)
         {
             var eligableSpots = new List<Int2>();
             for (int y = 0; y < height; y++)

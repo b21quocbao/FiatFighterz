@@ -39,7 +39,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The radius range to shoot
         /// </summary>
-        private Range radius;
+        private MRange radius;
 
         /// <summary>
         /// The amount of projectiles to shoot

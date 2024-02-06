@@ -55,7 +55,7 @@ namespace TitanCore.Data
         /// <summary>
         /// The starting size of this object
         /// </summary>
-        public Range size;
+        public MRange size;
 
         /// <summary>
         /// The sound effects of this object

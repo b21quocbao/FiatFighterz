@@ -71,20 +71,20 @@ namespace World.Worlds.Gates
 
             Log.Write($"Generated Distance Fields in {(DateTime.Now.Ticks - time) / TimeSpan.TicksPerSecond} sec.");
 
-            bossPosition = map.RandomDistancePoint(distanceField, new Range(maxDistance - 3, int.MaxValue));
+            bossPosition = map.RandomDistancePoint(distanceField, new MRange(maxDistance - 3, int.MaxValue));
             WriteSetPieceGround(map, valdoksBossSetPiece, bossPosition, true);
 
-            //bothmurPosition = map.RandomDistancePoint(distanceField, new Range(maxDistance * 0.7f, maxDistance * 0.85f));
+            //bothmurPosition = map.RandomDistancePoint(distanceField, new MRange(maxDistance * 0.7f, maxDistance * 0.85f));
             //WriteSetPieceGround(map, bothmurRoomSetPiece, bothmurPosition, true);
 
             for (int i = 0; i < 2; i++)
             {
                 float distance = 0.25f + i * 0.2f;
-                var position = map.RandomDistancePoint(distanceField, new Range(maxDistance * distance, maxDistance * (distance + 0.2f))).ToVec2() + 0.5f;
+                var position = map.RandomDistancePoint(distanceField, new MRange(maxDistance * distance, maxDistance * (distance + 0.2f))).ToVec2() + 0.5f;
                 forgePiecePositions.Add(position);
             }
 
-            blacksmithPosition = map.RandomDistancePoint(distanceField, new Range(maxDistance * 0.45f, maxDistance * 0.6f));
+            blacksmithPosition = map.RandomDistancePoint(distanceField, new MRange(maxDistance * 0.45f, maxDistance * 0.6f));
             WriteSetPieceGround(map, blacksmithSetPiece, blacksmithPosition, true);
 
             map.Extrude(MapElementType.Wall, map.GetMasses(MapElementType.Ground));

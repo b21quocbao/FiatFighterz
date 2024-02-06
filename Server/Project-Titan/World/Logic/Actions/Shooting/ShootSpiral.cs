@@ -31,7 +31,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The angle to shoot at
         /// </summary>
-        private Range angle;
+        private MRange angle;
 
         /// <summary>
         /// The angle gap between projectiles
@@ -46,7 +46,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The angle to step each shoot tick
         /// </summary>
-        public Range angleStep;
+        public MRange angleStep;
 
         /// <summary>
         /// The cooldown of the shots

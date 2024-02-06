@@ -102,6 +102,8 @@ namespace TitanDatabase.Models
 
         public string email;
 
+        public string nftId;
+
         public Rank rank = Rank.Player;
 
         public string verificationToken;
@@ -159,6 +161,7 @@ namespace TitanDatabase.Models
             unlockedItems = new HashSet<uint>(r.UInt32List("items"));
             SetClassQuests(r.UInt32List("classQuests"));
             givenRewards = r.Int32("givenRewards");
+            nftId = r.String("nftId");
 
             ExpandVault(vaultIds);
         }
@@ -185,6 +188,7 @@ namespace TitanDatabase.Models
             w.Write("items", unlockedItems.ToList());
             w.Write("classQuests", ExportClassQuestBinaries());
             w.Write("givenRewards", givenRewards);
+            w.Write("nftId", nftId);
         }
 
         private void SetClassQuests(List<uint> binaries)

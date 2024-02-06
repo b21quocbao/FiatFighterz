@@ -46,7 +46,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The radius range to shoot
         /// </summary>
-        private Range radiusOffset;
+        private MRange radiusOffset;
 
         /// <summary>
         /// The cooldown of the shots

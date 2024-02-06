@@ -1381,6 +1381,18 @@ namespace TitanDatabase
             return new WebNameChangeResponse(WebNameChangeResult.Success, toName);
         }
 
+        public static async Task<WebNftResponse> UpdateNft(Account account, string nftId)
+        {
+            account.nftId = nftId;
+            var saveResponse = await account.Put();
+            if (saveResponse.result != RequestResult.Success)
+            {
+                return new WebNftResponse(WebNftResult.InternalServerError, "");
+            }
+
+            return new WebNftResponse(WebNftResult.Success, account.nftId);
+        }
+
         #endregion
 
         #region Server Items Load/Save
@@ -1559,3 +1571,4 @@ namespace TitanDatabase
 
     #endregion
 }
+

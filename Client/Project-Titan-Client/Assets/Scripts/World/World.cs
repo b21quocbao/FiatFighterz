@@ -6,6 +6,7 @@ using TitanCore.Data;
 using TitanCore.Data.Items;
 using TitanCore.Data.Map;
 using TitanCore.Net;
+using TitanCore.Net.Web;
 using TitanCore.Net.Packets;
 using TitanCore.Net.Packets.Client;
 using TitanCore.Net.Packets.Models;
@@ -96,6 +97,8 @@ public class World : MonoBehaviour
     public bool dynamicMusic = false;
 
     private Sound currentMusic;
+
+    private WebClient.Response<WebNameChangeResponse> disableNftResponse;
 
     private float cameraRotation = 0;
     public float CameraRotation
@@ -654,6 +657,12 @@ public class World : MonoBehaviour
         stopTick = true;
         lowHpVignette.gameObject.SetActive(false);
         deathMenu.Show(player, death);
+        WebClient.SendDisableNft(Account.savedAccessToken, OnDisableNftResponse);
+    }
+
+    private void OnDisableNftResponse(WebClient.Response<WebNameChangeResponse> response)
+    {
+        disableNftResponse = response;
     }
 
     public void ProcessQuest(TnQuest quest)

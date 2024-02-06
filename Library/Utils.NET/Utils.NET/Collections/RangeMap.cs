@@ -5,7 +5,7 @@ using Utils.NET.Utils;
 
 namespace Utils.NET.Collections
 {
-    public struct Range
+    public struct MRange
     {
         /// <summary>
         /// The minimum value of this range
@@ -17,7 +17,7 @@ namespace Utils.NET.Collections
         /// </summary>
         public float max;
 
-        public Range(float min, float max)
+        public MRange(float min, float max)
         {
             this.min = min;
             this.max = max;
@@ -35,15 +35,15 @@ namespace Utils.NET.Collections
 
         public float Average() => min + (max - min) / 2;
 
-        public static implicit operator Range(float value) => new Range(value, value);
+        public static implicit operator MRange(float value) => new MRange(value, value);
     }
 
     public class RangePair<T>
     {
-        public Range range;
+        public MRange range;
         public T value;
 
-        public RangePair(Range range, T value)
+        public RangePair(MRange range, T value)
         {
             this.range = range;
             this.value = value;
@@ -86,7 +86,7 @@ namespace Utils.NET.Collections
             return default;
         }
 
-        public void Add(Range range, T value)
+        public void Add(MRange range, T value)
         {
             rangePairs.Add(new RangePair<T>(range, value));
         }

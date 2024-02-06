@@ -12,7 +12,7 @@ namespace World.Net
 
         private float eventWindow;
 
-        private Range cooldownBounds;
+        private MRange cooldownBounds;
 
         private float cooldownGrowth;
 
@@ -22,7 +22,7 @@ namespace World.Net
 
         private int eventCount;
 
-        public SpamChecker(int eventsPerWindow, float eventWindow, Range cooldownBounds, float cooldownGrowth)
+        public SpamChecker(int eventsPerWindow, float eventWindow, MRange cooldownBounds, float cooldownGrowth)
         {
             this.eventsPerWindow = eventsPerWindow;
             this.eventWindow = eventWindow;

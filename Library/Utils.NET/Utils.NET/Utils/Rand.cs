@@ -95,7 +95,7 @@ namespace Utils.NET.Utils
             return BitConverter.ToUInt64(Bytes(8), 0);
         }
 
-        public static float Range(Range range)
+        public static float Range(MRange range)
         {
             return range.min + (range.max - range.min) * FloatValue();
         }

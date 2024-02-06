@@ -48,7 +48,7 @@ namespace World.Logic.Actions.Spawning
         /// <summary>
         /// The position selection object
         /// </summary>
-        private PositionSelection selection = new PositionCircleSelection(new Range(0, 1), new Range(0, AngleUtils.PI_2), new Range(0, 0));
+        private PositionSelection selection = new PositionCircleSelection(new MRange(0, 1), new MRange(0, AngleUtils.PI_2), new MRange(0, 0));
 
         public override bool ReadParameterValue(string name, LogicScriptReader reader)
         {

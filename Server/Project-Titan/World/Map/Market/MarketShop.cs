@@ -28,7 +28,7 @@ namespace World.Map.Market
 
     public class MarketShop
     {
-        private static Range Market_Stand_TTL = new Range(180, 240);
+        private static MRange Market_Stand_TTL = new MRange(180, 240);
 
         private struct MarketStand
         {

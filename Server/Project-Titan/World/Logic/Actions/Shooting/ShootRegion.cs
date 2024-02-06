@@ -30,7 +30,7 @@ namespace World.Logic.Actions.Shooting
         /// <summary>
         /// The angle to shoot at
         /// </summary>
-        private Range angle;
+        private MRange angle;
 
         /// <summary>
         /// The angle gap between projectiles
