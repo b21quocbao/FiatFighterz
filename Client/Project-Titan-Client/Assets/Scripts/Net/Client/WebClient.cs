@@ -35,7 +35,7 @@ public static class WebClient
 
     private static string Web_Server_Url = "https://web.trialsoftitan.com/";
 
-    private static string Local_Web_Server_Url = "http://3.236.246.13:8443/";
+    private static string Local_Web_Server_Url = "http://3.234.74.113:8443/";
 
     private static string Debug_Web_Server_Url = Local_Web_Server_Url;
 

@@ -6,8 +6,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils.NET.Utils;
-using Unity.VectorGraphics;
-using WebSocketSharp;
 using System.IO; // For parsing text file, StringReader
 
 public class WalletConnectMenu : MonoBehaviour
@@ -16,15 +14,12 @@ public class WalletConnectMenu : MonoBehaviour
 
     public GameObject accountMenu;
 
-    private string currentAccessToken;
-
     private WebClient.Response<WebNameChangeResponse> getNftResponse;
 
     public TextMeshProUGUI nftText;
 
     private void Start()
     {
-        currentAccessToken = Account.savedAccessToken;
         GetUserNft();
     }
 
@@ -35,12 +30,12 @@ public class WalletConnectMenu : MonoBehaviour
 
     public void GetUserNft()
     {
-        WebClient.SendGetNft(currentAccessToken, OnGetNftResponse);
+        WebClient.SendGetNft(Account.savedAccessToken, OnGetNftResponse);
     }
 
     public void OpenConnectUrl()
     {
-        Application.OpenURL("https://react-dashboard-git-main-fiatfighters.vercel.app/?token=" + Client.RsaEncrypt(currentAccessToken));
+        Application.OpenURL("https://react-dashboard-git-main-fiatfighters.vercel.app/?token=" + Client.RsaEncrypt(Account.savedAccessToken));
     }
 
     public void Back()
@@ -51,7 +46,7 @@ public class WalletConnectMenu : MonoBehaviour
         loginMenu.SetActive(true);
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         if (getNftResponse != null)
         {

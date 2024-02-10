@@ -21,7 +21,7 @@ public class Client : NetConnection<TnPacket>//UdpClient<TnPacket>
 
     //private const string Game_Host = "3.17.35.212";
 
-    private const string Game_Host = "127.0.0.1";
+    private const string Game_Host = "3.234.74.113";
 
     public static string RsaEncrypt(string value)
     {

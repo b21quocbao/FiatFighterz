@@ -26,7 +26,7 @@ namespace WebServer.Servers
             if (!ModularProgram.manifest.Value("local", false)) return;
             infos = new WebServerInfo[]
             {
-                new WebServerInfo("Local", "127.0.0.1", "127.0.0.1", ServerStatus.Normal)
+                new WebServerInfo("Local", "3.234.74.113", "3.234.74.113", ServerStatus.Normal)
             };
         }
 
