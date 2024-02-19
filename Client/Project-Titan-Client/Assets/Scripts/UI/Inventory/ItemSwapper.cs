@@ -5,6 +5,8 @@ using TitanCore.Net.Packets.Client;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TitanCore.Data.Items;
+using TitanCore.Net.Web;
 
 public class ItemSwapper : MonoBehaviour
 {
@@ -17,6 +19,8 @@ public class ItemSwapper : MonoBehaviour
     public RectTransform rectTransform;
 
     private Slot slot;
+
+    private WebClient.Response<WebNameChangeResponse> sellItemResponse;
 
     public bool DragStarted(Item item, Slot slot)
     {
@@ -54,6 +58,16 @@ public class ItemSwapper : MonoBehaviour
 
         var result = results[0];
         var otherSlot = result.gameObject.GetComponent<Slot>();
+        var otherButton = result.gameObject.GetComponent<TitanButton>();
+
+        if (otherButton != null && otherButton.textLabel.text == "Drop Here")
+        {
+            var info = slot.item.GetInfo();
+            var equip = info as EquipmentInfo;
+            WebClient.SendSellItem(Account.savedAccessToken, ((int)equip.tier).ToString(), OnSellItemResponse);
+            world.gameManager.client.SendAsync(new TnDrop(slot.owner.GetGameId(), (byte)(slot.slotIndex + 100)));
+        }
+
         if (otherSlot == null)
         {
             foreach (var r in results)
@@ -75,5 +89,10 @@ public class ItemSwapper : MonoBehaviour
         }
 
         slot.Swap(otherSlot);
+    }
+
+    private void OnSellItemResponse(WebClient.Response<WebNameChangeResponse> response)
+    {
+        sellItemResponse = response;
     }
 }

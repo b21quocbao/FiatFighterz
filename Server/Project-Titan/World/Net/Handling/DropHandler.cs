@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TitanCore.Data;
 using TitanCore.Net.Packets.Client;
+using TitanDatabase.Models;
 using Utils.NET.Geometry;
 using Utils.NET.Utils;
 using World.Map.Objects.Map.Containers;
@@ -14,6 +15,7 @@ namespace World.Net.Handling
     {
         public override void Handle(TnDrop packet, Client connection)
         {
+            bool haveBag = true;
             if (connection.player.GetTradingWith() != null) return;
 
             if (!connection.player.world.objects.TryGetObject(packet.gameId, out var gameObject)) // retrieve objects
@@ -26,6 +28,12 @@ namespace World.Net.Handling
             if (!(gameObject is IContainer container)) // check if containers
             {
                 return;
+            }
+
+            if (packet.slot >= 100)
+            {
+                haveBag = false;
+                packet.slot -= 100;
             }
 
             if (packet.slot >= container.GetContainerSize()) // check container sizes to slot index
@@ -49,8 +57,15 @@ namespace World.Net.Handling
 
             container.SetItem(packet.slot, null);
 
-            var bag = GetLootBag(connection.player.world, gameObject.position.Value, item.itemData.soulbound ? connection.account.id : 0);
-            bag.SetItem(0, item);
+            if (haveBag)
+            {
+                var bag = GetLootBag(connection.player.world, gameObject.position.Value, item.itemData.soulbound ? connection.account.id : 0);
+                bag.SetItem(0, item);
+            }
+            else
+            {
+                DeleteItem(item);
+            }
         }
 
         private LootBag GetLootBag(World world, Vec2 position, ulong ownerId)
@@ -63,6 +78,11 @@ namespace World.Net.Handling
             bag.SetOwnerId(ownerId);
 
             return bag;
+        }
+
+        private async void DeleteItem(ServerItem item)
+        {
+            await ServerItem.Delete(item.id);
         }
     }
 }

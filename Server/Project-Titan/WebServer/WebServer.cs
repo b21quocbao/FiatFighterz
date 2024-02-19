@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -82,6 +83,7 @@ namespace WebServer
             listener.AddHandler("v1/account/changename", HandleChangeName);
             listener.AddHandler("v1/account/forgot", HandleForgot);
             listener.AddHandler("v1/account/disablenft", HandleDisableNft);
+            listener.AddHandler("v1/account/sellitem", HandleSellItem);
             listener.AddHandler("v1/account/updatenft", HandleUpdateNft);
             listener.AddHandler("v1/account/getnft", HandleGetNft);
 
@@ -388,7 +390,109 @@ namespace WebServer
 
                 privateKey.Dispose();
 
-                await Database.UpdateNft(account, "");
+                await Database.UpdateNft(account, "", "");
+
+                return new WebNftResponse(WebNftResult.Success, "");
+            }
+            finally
+            {
+                await Database.Logout(account, ServerName);
+            }
+        }
+
+        private async Task<object> HandleSellItem(HttpListenerContext context, NameValueCollection query)
+        {
+            if (!rateLimiter.CanRequest(context.Request.RemoteEndPoint.Address))
+            {
+                return new WebNftResponse(WebNftResult.RateLimitReached, "");
+            }
+
+            var token = query["token"];
+            var tier = query["tier"];
+
+            if (AnyNull(token))
+            {
+                return new WebNftResponse(WebNftResult.InvalidRequest, "");
+            }
+
+            token = DecryptString(token);
+
+            var loginResponse = await Database.Login(token, ServerName);
+            if (loginResponse.result != LoginResult.Success)
+            {
+                switch (loginResponse.result)
+                {
+                    case LoginResult.AccountInUse:
+                        return new WebNftResponse(WebNftResult.AccountInUse, "");
+                    default:
+                        return new WebNftResponse(WebNftResult.InternalServerError, "");
+                }
+            }
+
+            var account = loginResponse.account;
+            try
+            {
+                // The network ID to use for this example.
+                const byte networkId = 0x02;
+
+                // In this example we will use an ephemeral private key for the notary.
+                var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
+                    networkId
+                );
+
+                // Constructing the manifest
+                var xrd = new Address("resource_tdx_2_1t5sa940cqs2x52x93fjaca2fafmysst675k2hcezmdxjxduxj6gpwx");
+
+                using var address1 =
+                    new Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt");
+                using var address2 =
+                    new Address(account.walletAddress);
+
+                using var manifest = new ManifestBuilder()
+                    .AccountLockFeeAndWithdraw(address1, new RadixEngineToolkit.Decimal("10"), xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()))
+                    .TakeFromWorktop(xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()), new ManifestBuilderBucket("xrdBucket"))
+                    .AccountTryDepositOrAbort(address2, new ManifestBuilderBucket("xrdBucket"), null)
+                    .Build(networkId);
+                manifest.StaticallyValidate();
+
+                // Constructing the transaction
+                var currentEpoch = await GatewayApiClient.CurrentEpoch();
+                using var transaction =
+                    new TransactionBuilder()
+                        .Header(
+                            new TransactionHeader(
+                                networkId,
+                                currentEpoch,
+                                (currentEpoch + 2),
+                                Utils.RandomNonce(),
+                                publicKey,
+                                true,
+                                0
+                            )
+                        )
+                        .Manifest(
+                            manifest
+                        )
+                        .Message(
+                            new Message.None()
+                        )
+                        .NotarizeWithPrivateKey(
+                            privateKey
+                        );
+
+                // Printing out the transaction ID and then submitting the transaction to the network.
+                using var transactionId = transaction.IntentHash();
+                Console.WriteLine(
+                    $"Transaction ID: {transactionId.AsStr()}"
+                );
+
+                await GatewayApiClient.SubmitTransaction(
+                    transaction
+                );
+
+                privateKey.Dispose();
+
+                await Database.UpdateNft(account, "", "");
 
                 return new WebNftResponse(WebNftResult.Success, "");
             }
@@ -647,13 +751,14 @@ namespace WebServer
             var account = loginResponse.account;
 
             var nftId = query["nftId"];
+            var walletAddress = query["walletAddress"];
 
             if (AnyNullOrEmpty(nftId))
             {
                 return new WebNftResponse(WebNftResult.InvalidRequest, "");
             }
 
-            var response = await Database.UpdateNft(account, nftId);
+            var response = await Database.UpdateNft(account, nftId, walletAddress);
             Log.Write(response.result);
             return response;
         }

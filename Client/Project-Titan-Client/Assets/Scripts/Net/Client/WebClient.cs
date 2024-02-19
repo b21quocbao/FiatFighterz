@@ -144,6 +144,15 @@ public static class WebClient
         }, callback);
     }
 
+    public static void SendSellItem(string accessToken, string tier, Action<Response<WebNameChangeResponse>> callback)
+    {
+        SendRequest("v1/account/sellitem", new Dictionary<string, string>()
+        {
+            { "token", Client.RsaEncrypt(accessToken) },
+            { "tier", tier },
+        }, callback);
+    }
+
     public static void SendGetNft(string accessToken, Action<Response<WebNameChangeResponse>> callback)
     {
         SendRequest("v1/account/getnft", new Dictionary<string, string>()

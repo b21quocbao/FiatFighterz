@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using System;
 
 public class InteractPanel : MonoBehaviour
 {
@@ -20,7 +21,18 @@ public class InteractPanel : MonoBehaviour
     public void SetInteractable(IInteractable interactable)
     {
         if (this.interactable != interactable && interactable != null)
-            UpdateLabels(interactable);
+        {
+            string label = interactable.InteractionTitle;
+            string[] options = interactable.InteractionOptions;
+            if (interactable.InteractionTitle == "Companion Snail Totem")
+            {
+                label = "Trade items to radix tokens";
+                options[0] = "Drop Here";
+                // options = options.Take(options.Length - 1).ToArray();
+                Array.Resize(ref options, options.Length - 1);
+            }
+            UpdateLabels(options, label);
+        }
 
         if (this.interactable != interactable)
         {
@@ -39,11 +51,9 @@ public class InteractPanel : MonoBehaviour
         gameObject.SetActive(interactable != null);
     }
 
-    private void UpdateLabels(IInteractable interactable)
+    private void UpdateLabels(string[] options, string label)
     {
-        title.text = interactable.InteractionTitle;
-
-        var options = interactable.InteractionOptions;
+        title.text = label;
         button0Title.text = options[0];
 
         if (options.Length > 1)
