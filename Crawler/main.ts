@@ -153,6 +153,11 @@ async function process() {
       }));
     }
   }
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 10000);
+  });
+  process();
 }
 
 async function dynamodb() {
