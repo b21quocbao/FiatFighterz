@@ -18,6 +18,12 @@ public class WalletConnectMenu : MonoBehaviour
 
     public TextMeshProUGUI nftText;
 
+    public GameObject recheckButton;
+
+    public GameObject connectButton;
+
+    public GameObject continueButton;
+
     private void Start()
     {
         GetUserNft();
@@ -36,6 +42,12 @@ public class WalletConnectMenu : MonoBehaviour
     public void OpenConnectUrl()
     {
         Application.OpenURL("https://react-dashboard-git-main-fiatfighters.vercel.app/?token=" + Client.RsaEncrypt(Account.savedAccessToken));
+    }
+
+    public void Continue()
+    {
+        gameObject.SetActive(false);
+        accountMenu.SetActive(true);
     }
 
     public void Back()
@@ -61,10 +73,19 @@ public class WalletConnectMenu : MonoBehaviour
             else
             {
                 if (getNftResponse.item.newName != "") {
-                    nftText.SetText("NFT ID: " + getNftResponse.item.newName);
-                    // yield return new WaitForSeconds(4);
-                    gameObject.SetActive(false);
-                    accountMenu.SetActive(true);
+                    var arr = getNftResponse.item.newName.Split('\n');
+                    if (arr.Length > 5) {
+                        List<string> list = new List<string>();
+                        for (int i = 0; i < 5; ++i) {
+                            list.Add(arr[i]);
+                        }
+                        nftText.SetText("List playable NFTs: \n" + string.Join("\n", list.ToArray()) + "\n...");
+                    } else {
+                        nftText.SetText("List playable NFTs: \n" + getNftResponse.item.newName);
+                    }
+                    recheckButton.SetActive(false);
+                    connectButton.SetActive(false);
+                    continueButton.SetActive(true);
                 }
             }
             getNftResponse = null;

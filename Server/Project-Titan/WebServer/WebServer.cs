@@ -394,6 +394,11 @@ namespace WebServer
 
                 return new WebNftResponse(WebNftResult.Success, "");
             }
+            catch (Exception e)
+            {
+                Log.Error("Disable NFT processing failed." + e);
+                throw;
+            }
             finally
             {
                 await Database.Logout(account, ServerName);
@@ -786,7 +791,7 @@ namespace WebServer
             }
 
             var account = loginResponse.account;
-            return new WebNameChangeResponse(WebNameChangeResult.Success, account.nftId);
+            return new WebNameChangeResponse(WebNameChangeResult.Success, String.Join("\n", account.nftIds.ToArray()));
         }
 
         protected async Task SendHtml(HttpListenerContext context, string html)

@@ -23,6 +23,7 @@ using TitanCore.Net;
 using Amazon;
 using TitanDatabase.Leaderboards;
 using Utils.NET.Modules;
+using System.Xml.Linq;
 
 namespace TitanDatabase
 {
@@ -270,6 +271,8 @@ namespace TitanDatabase
 
         public static string Table_Name_Reservation = ModularProgram.manifest.Value("dbPrefix", "") + "titan_name_reservation";
 
+        public static string Table_Wallet_Address = ModularProgram.manifest.Value("dbPrefix", "") + "titan_wallet_address";
+
         public static string Table_Account_Lock = ModularProgram.manifest.Value("dbPrefix", "") + "titan_account_lock";
 
         public static string Table_Characters = ModularProgram.manifest.Value("dbPrefix", "") + "titan_characters";
@@ -296,6 +299,7 @@ namespace TitanDatabase
                 { Table_Token_Login, CreateTokenLoginTable },
                 { Table_Email_Login, CreateEmailLoginTable },
                 { Table_Name_Reservation, CreateNameReservationTable },
+                { Table_Wallet_Address, CreateWalletAddressTable },
                 { Table_Account_Lock, CreateAccountLockTable },
                 { Table_Characters, CreateCharactersTable },
                 { Table_Items, CreateItemsTable },
@@ -449,6 +453,25 @@ namespace TitanDatabase
                 KeySchema = new List<KeySchemaElement>
                 {
                     new KeySchemaElement("playerName", KeyType.HASH)
+                },
+                BillingMode = BillingMode.PAY_PER_REQUEST
+            };
+
+            return await CreateTable(request, false);
+        }
+
+        private static async Task<bool> CreateWalletAddressTable()
+        {
+            var request = new CreateTableRequest()
+            {
+                TableName = Table_Wallet_Address,
+                AttributeDefinitions = new List<AttributeDefinition>
+                {
+                    new AttributeDefinition("wallet", ScalarAttributeType.S)
+                },
+                KeySchema = new List<KeySchemaElement>
+                {
+                    new KeySchemaElement("wallet", KeyType.HASH)
                 },
                 BillingMode = BillingMode.PAY_PER_REQUEST
             };
@@ -1385,14 +1408,40 @@ namespace TitanDatabase
         {
             account.nftId = nftId;
             account.walletAddress = walletAddress;
-            
-            var saveResponse = await account.Put();
-            if (saveResponse.result != RequestResult.Success)
-            {
-                return new WebNftResponse(WebNftResult.InternalServerError, "");
-            }
 
-            return new WebNftResponse(WebNftResult.Success, account.nftId);
+            var existingWalletAddress = await WalletAddress.Get(walletAddress);
+            switch (existingWalletAddress.result)
+            {
+                case RequestResult.ResourceNotFound:
+                    var walletAddressModel = new WalletAddress();
+                    walletAddressModel.wallet = walletAddress;
+                    walletAddressModel.accountId = account.id;
+                    var res = await walletAddressModel.Put("attribute_not_exists(walletAddress)");
+                    if (res.result != RequestResult.Success)
+                    {
+                        return new WebNftResponse(WebNftResult.InternalServerError, "");
+                    }
+                    var saveResponse = await account.Put();
+                    if (saveResponse.result != RequestResult.Success)
+                    {
+                        return new WebNftResponse(WebNftResult.InternalServerError, "");
+                    }
+
+                    return new WebNftResponse(WebNftResult.Success, account.nftId);
+
+                case RequestResult.Success:
+                    if (existingWalletAddress.item.accountId == account.id)
+                    {
+                        var saveResponse2 = await account.Put();
+                        if (saveResponse2.result != RequestResult.Success)
+                        {
+                            return new WebNftResponse(WebNftResult.InternalServerError, "");
+                        }
+                    }
+                    return new WebNftResponse(WebNftResult.InternalServerError, "");
+                default:
+                    return new WebNftResponse(WebNftResult.InternalServerError, "");
+            }
         }
 
         #endregion
