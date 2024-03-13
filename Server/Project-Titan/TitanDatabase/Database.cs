@@ -1444,6 +1444,19 @@ namespace TitanDatabase
             }
         }
 
+        public static async Task<WebNftResponse> DeleteNft(Account account)
+        {
+            account.nftId = "";
+
+            var saveResponse = await account.Put();
+            if (saveResponse.result != RequestResult.Success)
+            {
+                return new WebNftResponse(WebNftResult.InternalServerError, "");
+            }
+
+            return new WebNftResponse(WebNftResult.Success, account.nftId);
+        }
+
         #endregion
 
         #region Server Items Load/Save

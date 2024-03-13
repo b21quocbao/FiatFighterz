@@ -390,7 +390,7 @@ namespace WebServer
 
                 privateKey.Dispose();
 
-                await Database.UpdateNft(account, "", "");
+                await Database.DeleteNft(account);
 
                 return new WebNftResponse(WebNftResult.Success, "");
             }
