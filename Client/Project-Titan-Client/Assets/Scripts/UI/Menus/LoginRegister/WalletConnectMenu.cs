@@ -14,7 +14,7 @@ public class WalletConnectMenu : MonoBehaviour
 
     public GameObject accountMenu;
 
-    private WebClient.Response<WebNameChangeResponse> getNftResponse;
+    private WebClient.Response<WebDescribeResponse> describeResponse;
 
     public TextMeshProUGUI nftText;
 
@@ -27,16 +27,17 @@ public class WalletConnectMenu : MonoBehaviour
     private void Start()
     {
         GetUserNft();
+        describeResponse = null;
     }
 
-    private void OnGetNftResponse(WebClient.Response<WebNameChangeResponse> response)
+    private void OnDescribeResponse(WebClient.Response<WebDescribeResponse> response)
     {
-        getNftResponse = response;
+        describeResponse = response;
     }
 
     public void GetUserNft()
     {
-        WebClient.SendGetNft(Account.savedAccessToken, OnGetNftResponse);
+        WebClient.SendWebDescribe(Account.savedAccessToken, OnDescribeResponse);
     }
 
     public void OpenConnectUrl()
@@ -60,35 +61,28 @@ public class WalletConnectMenu : MonoBehaviour
 
     private void Update()
     {
-        if (getNftResponse != null)
+        if (describeResponse != null)
         {
-            if (getNftResponse.exception != null)
+            if (describeResponse.exception != null)
             {
-                Debug.LogError(getNftResponse.exception);
+                Debug.LogError(describeResponse.exception);
             }
-            else if (getNftResponse.item.result != WebNameChangeResult.Success)
+            else if (describeResponse.item.result != WebDescribeResult.Success)
             {
-                // errorLabel.text = getNftResponse.item.result.ToString();
+                // errorLabel.text = describeResponse.item.result.ToString();
             }
             else
             {
-                if (getNftResponse.item.newName != "") {
-                    var arr = getNftResponse.item.newName.Split('\n');
-                    if (arr.Length > 5) {
-                        List<string> list = new List<string>();
-                        for (int i = 0; i < 5; ++i) {
-                            list.Add(arr[i]);
-                        }
-                        nftText.SetText("List playable NFTs: \n" + string.Join("\n", list.ToArray()) + "\n...");
-                    } else {
-                        nftText.SetText("List playable NFTs: \n" + getNftResponse.item.newName);
-                    }
+                Debug.Log("Length: " + describeResponse.item.characters.Length);
+                if (describeResponse.item.characters.Length > 0) {
+                    nftText.SetText("Found " + describeResponse.item.characters.Length + " characters");
+                    Account.describe = describeResponse.item;
                     recheckButton.SetActive(false);
                     connectButton.SetActive(false);
                     continueButton.SetActive(true);
                 }
             }
-            getNftResponse = null;
+            describeResponse = null;
         }
     }
 }

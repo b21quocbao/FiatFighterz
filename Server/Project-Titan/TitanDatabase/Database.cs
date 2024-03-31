@@ -24,6 +24,7 @@ using Amazon;
 using TitanDatabase.Leaderboards;
 using Utils.NET.Modules;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace TitanDatabase
 {
@@ -884,90 +885,105 @@ namespace TitanDatabase
             return items;
         }
 
-        public static async Task<CreateCharacterResponse> CreateCharacter(Account account, ushort type)
+        public static async Task<CreateCharacterResponse> CreateCharacter(Account account, ulong nftId, ushort type)
         {
-            if (account.characters.Count >= account.maxCharacters)
-                return new CreateCharacterResponse(null, CreateCharacterResult.MaxCharactersReached);
-
-            if (!GameData.objects.TryGetValue(type, out var info) || !(info is CharacterInfo charInfo))
-                return new CreateCharacterResponse(null, CreateCharacterResult.InvalidCharacterType);
-
-            if (!account.CanCreateCharacter(charInfo))
-                return new CreateCharacterResponse(null, CreateCharacterResult.CharacterTypeLocked);
-
-            if (charInfo.notPlayable)
-                return new CreateCharacterResponse(null, CreateCharacterResult.CharacterNotPlayable);
-
-            var character = new Character()
+            var existingCharacterResult = await Character.Get(nftId);
+            switch (existingCharacterResult.result)
             {
-                id = 0,
-                accountId = account.id,
-                type = type,
-                experience = 0,
-                level = 1,
-                stats = CreateCharacterStats(charInfo),
-                statsLocked = new List<uint>(),
-                itemIds = CreateCharacterItems(),
-                dead = false,
-                killer = 0,
-                creationDate = DateTime.UtcNow
-            };
-
-            bool idFailed = false;
-            do
-            {
-                ulong id = GenerateUInt64Id();
-                if (id == 0)
-                {
-                    idFailed = true;
-                    continue;
-                }
-
-                character.id = id;
-                var characterResponse = await character.Put("attribute_not_exists(id)");
-                if (characterResponse.result != RequestResult.Success)
-                {
-                    switch (characterResponse.result)
+                case RequestResult.Success:
+                    var existingCharacter = existingCharacterResult.item;
+                    if (existingCharacter.accountId != account.id)
                     {
-                        case RequestResult.ConditionalCheckFailed:
-                            idFailed = true;
-                            break;
-                        default:
-                            return new CreateCharacterResponse(null, CreateCharacterResult.AwsServerError);
+                        var loginResponse = await Database.Login(existingCharacter.accountId, "Web");
+                        if (loginResponse.result == LoginResult.Success)
+                        {
+                            var existingAccount = loginResponse.account;
+                            existingAccount.characters.Remove(existingCharacter.id);
+                            await existingAccount.Put();
+                        }
+                        existingCharacter.accountId = account.id;
+                        var saveResponse = await existingCharacter.Put();
+                        account.characters.Add(existingCharacter.id);
+                        await account.Put();
+                        if (saveResponse.result == RequestResult.Success)
+                        {
+                            return new CreateCharacterResponse(existingCharacter, CreateCharacterResult.Success);
+                        }
+                        return new CreateCharacterResponse(null, CreateCharacterResult.CharacterNotPlayable);
                     }
-                }
+                    return new CreateCharacterResponse(existingCharacter, CreateCharacterResult.Success);
+                case RequestResult.ResourceNotFound:
+                    if (!GameData.objects.TryGetValue(type, out var info) || !(info is CharacterInfo charInfo))
+                        return new CreateCharacterResponse(null, CreateCharacterResult.InvalidCharacterType);
+
+                    var character = new Character()
+                    {
+                        id = nftId,
+                        accountId = account.id,
+                        type = type,
+                        experience = 0,
+                        level = 1,
+                        stats = CreateCharacterStats(charInfo),
+                        statsLocked = new List<uint>(),
+                        itemIds = CreateCharacterItems(),
+                        dead = false,
+                        killer = 0,
+                        creationDate = DateTime.UtcNow
+                    };
+
+                    bool idFailed = false;
+                    do
+                    {
+                        var characterResponse = await character.Put("attribute_not_exists(id)");
+                        if (characterResponse.result != RequestResult.Success)
+                        {
+                            switch (characterResponse.result)
+                            {
+                                case RequestResult.ConditionalCheckFailed:
+                                    idFailed = true;
+                                    break;
+                                default:
+                                    return new CreateCharacterResponse(null, CreateCharacterResult.AwsServerError);
+                            }
+                        }
+                    }
+                    while (idFailed);
+
+                    character.items = new List<ServerItem>();
+                    for (int i = 0; i < character.itemIds.Count; i++)
+                    {
+                        if (i >= charInfo.defaultItems.Length)
+                        {
+                            character.items.Add(null);
+                            continue;
+                        }
+
+                        var defaultItem = charInfo.defaultItems[i];
+                        if (defaultItem == 0)
+                        {
+                            character.items.Add(null);
+                            continue;
+                        }
+
+                        var createResponse = await CreateItem(new Item(defaultItem), character.id);
+                        if (createResponse.result != CreateItemResult.Success)
+                        {
+
+                            character.items.Add(null);
+                            continue;
+                        }
+
+                        character.items.Add(createResponse.item);
+                        character.itemIds[i] = createResponse.item.id;
+                    }
+
+                    account.characters.Add(character.id);
+                    await account.Put();
+                    await character.Put();
+                    return new CreateCharacterResponse(character, CreateCharacterResult.Success);
+                default:
+                    return new CreateCharacterResponse(null, CreateCharacterResult.CharacterNotPlayable);
             }
-            while (idFailed);
-
-            character.items = new List<ServerItem>();
-            for (int i = 0; i < character.itemIds.Count; i++)
-            {
-                if (i >= charInfo.defaultItems.Length)
-                {
-                    character.items.Add(null);
-                    continue;
-                }
-
-                var defaultItem = charInfo.defaultItems[i];
-                if (defaultItem == 0)
-                {
-                    character.items.Add(null);
-                    continue;
-                }
-
-                var createResponse = await CreateItem(new Item(defaultItem), character.id);
-                if (createResponse.result != CreateItemResult.Success)
-                {
-
-                    character.items.Add(null);
-                    continue;
-                }
-
-                character.items.Add(createResponse.item);
-            }
-
-            account.characters.Add(character.id);
-            return new CreateCharacterResponse(character, CreateCharacterResult.Success);
         }
 
         public static async Task<CreateItemResponse> CreateItem(Item data, ulong containerId)

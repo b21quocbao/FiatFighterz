@@ -243,6 +243,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 1bc484c168ef3ce4ba5532c56c2eea6c, type: 3}
   - {fileID: 21300000, guid: d52994c10e9de6e4db7e72f89d400f4f, type: 3}
   - {fileID: 21300000, guid: c87f67c13a2e7e34586abc35d5201a62, type: 3}
+  - {fileID: 21300000, guid: d65dcec175a8cdc4c9be03f02f3e228f, type: 3}
   - {fileID: 21300000, guid: 8ca572d1a649316419b26c144b9b1958, type: 3}
   - {fileID: 21300000, guid: e80238d145d112e43b27124f20f378d8, type: 3}
   - {fileID: 21300000, guid: 77c149d175153b843b7a550caf46dc9a, type: 3}
@@ -392,6 +393,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: c32c31336cb3f6040a31125e4e8180a0, type: 3}
   - {fileID: 21300000, guid: 18f891334fdd34b48b288385f092c0b3, type: 3}
   - {fileID: 21300000, guid: 687d423314ccfe048821dca448e5e67a, type: 3}
+  - {fileID: 21300000, guid: 69e6923319f5ab54b93d23ca489623b8, type: 3}
   - {fileID: 21300000, guid: 97b00933db371fe44a6e12e0d49e1352, type: 3}
   - {fileID: 21300000, guid: 16fa59337c33b85449085b676e3a96ad, type: 3}
   - {fileID: 21300000, guid: c8822d335b1504184a732312aaa01546, type: 3}
@@ -1193,6 +1195,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 941c2bcbfe43a6a4eb7bb7fe6b672f02, type: 3}
   - {fileID: 21300000, guid: c92d12db0a0ae234a9859e5af993e507, type: 3}
   - {fileID: 21300000, guid: e13463dbd5d29d34b99b699d4068b8fa, type: 3}
+  - {fileID: 21300000, guid: df3c86db1ffc88842b11f37c13f8f2e0, type: 3}
   - {fileID: 21300000, guid: 1247b7dbe729d2b41b2c094ff7bf06fb, type: 3}
   - {fileID: 21300000, guid: f17a58db13b35cf47a4bae83874ce1f7, type: 3}
   - {fileID: 21300000, guid: ede278db8f168b041938c0017f4ad7f2, type: 3}
@@ -1802,6 +1805,7 @@ SpriteAtlas:
   - StrandedKnight-1
   - Bhognin-Swing-2
   - Soulbound Bag
+  - Ranger-avatar
   - Barrens Skeletal Ribs
   - DumirianWitch-1
   - EntSapling-Wither-1
@@ -1951,6 +1955,7 @@ SpriteAtlas:
   - CrusadingKnight-8
   - FrostGiant-2
   - MinisterPillarT4-5
+  - Alchemist-avatar
   - LightArmor 1
   - Alchemist-5
   - Berserker-12
@@ -2752,6 +2757,7 @@ SpriteAtlas:
   - MagusOfRictorn-2
   - Balun-2
   - BubraFemaleVillager-2
+  - Warrior-avatar
   - GiantMiner-2
   - Forest Protector Bloom
   - WisperingEnt-Shrink-2

@@ -1,15 +1,19 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
+using Newtonsoft.Json.Linq;
+using RadixEngineToolkit;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using TitanCore.Core;
 using TitanCore.Data.Entities;
+using TitanCore.Net.Web;
 using Utils.NET.IO;
 using Utils.NET.Logging;
 
@@ -98,7 +102,7 @@ namespace TitanDatabase.Models
 
         public long deathCurrency = 0;
 
-        public int maxCharacters = 1;
+        public int maxCharacters = 10000;
 
         public string email;
 
@@ -312,17 +316,191 @@ namespace TitanDatabase.Models
             return unlockedItems.Contains(item);
         }
 
-        public void CharacterDied(ulong id)
+        public async void CharacterDied(ulong id)
         {
             characters.Remove(id);
             deaths.Insert(0, id);
             if (deaths.Count > 20)
                 deaths.RemoveAt(deaths.Count - 1);
+            try
+            {
+                // The network ID to use for this example.
+                const byte networkId = 0x02;
+
+                // In this example we will use an ephemeral private key for the notary.
+                var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
+                    networkId
+                );
+
+                // Constructing the manifest
+                var manifestString = $"""
+                 CALL_METHOD
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "lock_fee"
+                     Decimal("100")
+                 ;
+                 CALL_METHOD
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "create_proof_of_amount"
+                     Address("resource_tdx_2_1tk5xtvqdtcjvdxhzzvg2qgmntx23cv0s20ryzsjy60qev93hsyej2j")
+                     Decimal("1")
+                 ;
+                 CALL_METHOD
+                     Address("component_tdx_2_1crzldhzgqkcf9t6fa9rm8qkv2surp8g40djlkqawm9xjg437705jer")
+                     "disable"
+                     "FIATFIGHTERZ_{id}"
+                 ;
+                 CALL_METHOD
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "try_deposit_batch_or_refund"
+                     Expression("ENTIRE_WORKTOP")
+                     Enum<0u8>()
+                 ;
+                 """;
+                using var manifest = new TransactionManifest(
+                    Instructions.FromString(
+                        manifestString,
+                        networkId
+                    ),
+                    Array.Empty<byte[]>()
+                );
+                manifest.StaticallyValidate();
+
+                // Constructing the transaction
+                var currentEpoch = await GatewayApiClient.CurrentEpoch();
+                using var transaction =
+                    new TransactionBuilder()
+                        .Header(
+                            new TransactionHeader(
+                                networkId,
+                                currentEpoch,
+                                (currentEpoch + 2),
+                                Utils.RandomNonce(),
+                                publicKey,
+                                true,
+                                0
+                            )
+                        )
+                        .Manifest(
+                            manifest
+                        )
+                        .Message(
+                            new Message.None()
+                        )
+                        .NotarizeWithPrivateKey(
+                            privateKey
+                        );
+
+                // Printing out the transaction ID and then submitting the transaction to the network.
+                using var transactionId = transaction.IntentHash();
+                Console.WriteLine(
+                    $"Transaction ID: {transactionId.AsStr()}"
+                );
+
+                await GatewayApiClient.SubmitTransaction(
+                    transaction
+                );
+
+                privateKey.Dispose();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Disable NFT processing failed." + e);
+                throw;
+            }
         }
 
         public override bool IsDifferent()
         {
             return true;
+        }
+
+        internal static class Utils
+        {
+            public static uint RandomNonce()
+            {
+                return (uint)RandomNumberGenerator.GetInt32(int.MaxValue);
+            }
+
+            public static Tuple<PrivateKey, RadixEngineToolkit.PublicKey, Address> NewAccount(byte networkId)
+            {
+                // Generating bytes through secure random to use for the private key of the account.
+                var hex = "08e8029cb817bae895a871a33b8e0e2f2bb99668a3a670780c6b23253606e606";
+                var privateKeyBytes = Enumerable.Range(0, hex.Length)
+                     .Where(x => x % 2 == 0)
+                     .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                     .ToArray();
+
+                // New private key, derive public key, and derive account address
+                var privateKey = PrivateKey.NewEd25519(
+                    privateKeyBytes
+                );
+                var publicKey = privateKey.PublicKey();
+                var accountAddress = Address.VirtualAccountAddressFromPublicKey(
+                    publicKey,
+                    networkId
+                );
+
+                return new Tuple<PrivateKey, RadixEngineToolkit.PublicKey, Address>(
+                    privateKey,
+                    publicKey,
+                    accountAddress
+                );
+            }
+        }
+
+        internal static class GatewayApiClient
+        {
+            public static async Task<ulong> CurrentEpoch()
+            {
+                var client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/status/gateway-status");
+                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                request.Headers.Add("accept", "application/json");
+                request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
+                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
+                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
+                request.Headers.Add("sec-ch-ua-mobile", "?0");
+                request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
+                request.Headers.Add("sec-fetch-dest", "empty");
+                request.Headers.Add("sec-fetch-mode", "cors");
+                request.Headers.Add("sec-fetch-site", "same-origin");
+                request.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                var responseJson = JObject.Parse(responseString);
+
+                return responseJson.Value<JObject>("ledger_state").Value<ulong>("epoch");
+            }
+
+            public static async Task SubmitTransaction(NotarizedTransaction notarizedTransaction)
+            {
+                var compiledNotarizedTransaction = notarizedTransaction.Compile();
+                string hex = BitConverter.ToString(compiledNotarizedTransaction).Replace("-", string.Empty);
+                /* Submit to the Gateway API */
+
+                var client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/transaction/submit");
+                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                request.Headers.Add("accept", "application/json");
+                request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
+                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
+                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
+                request.Headers.Add("sec-ch-ua-mobile", "?0");
+                request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
+                request.Headers.Add("sec-fetch-dest", "empty");
+                request.Headers.Add("sec-fetch-mode", "cors");
+                request.Headers.Add("sec-fetch-site", "same-origin");
+                request.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+
+                var content = new StringContent("{\n  \"notarized_transaction_hex\": \"" + hex + "\"\n}", null, "application/json");
+                request.Content = content;
+                await client.SendAsync(request);
+            }
         }
     }
 }

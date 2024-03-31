@@ -64,26 +64,6 @@ public class CharactersMenu : MonoBehaviour
             character.GetComponent<CharacterPreview>().SetCharacter(charInfo);
             characters[i] = character;
         }
-
-        int index;
-        createCharacters = new GameObject[Account.describe.maxCharacters - characters.Length];
-        for (index = characters.Length; index < Account.describe.maxCharacters; index++)
-        {
-            var create = CreateCharacterCreate();
-            var createRect = create.GetComponent<RectTransform>();
-            PlaceRect(createRect, index);
-            create.SetActive(true);
-            createCharacters[index - characters.Length] = create;
-        }
-
-        purchaseCharacter.gameObject.SetActive(false);
-        PlaceRect(purchaseCharacter, index);
-        purchaseCharacter.gameObject.SetActive(true);
-        purchaseCharacter.GetComponent<PurchaseSlot>().SetPrice(NetConstants.GetCharacterSlotCost(Account.describe.maxCharacters));
-
-        scrollContent.sizeDelta = new Vector2(scrollContent.sizeDelta.x, -purchaseCharacter.anchoredPosition.y + purchaseCharacter.sizeDelta.y);
-
-        UpdateCurrencyLabel();
     }
 
     private GameObject CreateCharacterPreview()

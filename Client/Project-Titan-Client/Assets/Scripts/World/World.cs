@@ -657,7 +657,7 @@ public class World : MonoBehaviour
         stopTick = true;
         lowHpVignette.gameObject.SetActive(false);
         deathMenu.Show(player, death);
-        WebClient.SendDisableNft(Account.savedAccessToken, OnDisableNftResponse);
+        // WebClient.SendDisableNft(Account.savedAccessToken, OnDisableNftResponse);
     }
 
     private void OnDisableNftResponse(WebClient.Response<WebNameChangeResponse> response)

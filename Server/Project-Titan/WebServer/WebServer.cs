@@ -33,6 +33,7 @@ using Utils.NET.Utils;
 using WebServer.Iap;
 using WebServer.Leaderboard;
 using WebServer.Servers;
+using static TitanDatabase.Models.Model;
 
 namespace WebServer
 {
@@ -86,6 +87,7 @@ namespace WebServer
             listener.AddHandler("v1/account/sellitem", HandleSellItem);
             listener.AddHandler("v1/account/updatenft", HandleUpdateNft);
             listener.AddHandler("v1/account/getnft", HandleGetNft);
+            listener.AddHandler("v1/account/character", HandleCreateCharacter);
 
             listener.AddHandler("v1/server/list", HandleServerList);
             listener.AddHandler("v1/server/update", HandleServerUpdate);
@@ -333,7 +335,13 @@ namespace WebServer
                      Decimal("100")
                  ;
                  CALL_METHOD
-                     Address("component_tdx_2_1cz248axxqkguf9gy7wq0wrpym8w5ugdg08uj5cwe7uulghs70mk88p")
+                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     "create_proof_of_amount"
+                     Address("resource_tdx_2_1tk5xtvqdtcjvdxhzzvg2qgmntx23cv0s20ryzsjy60qev93hsyej2j")
+                     Decimal("1")
+                 ;
+                 CALL_METHOD
+                     Address("component_tdx_2_1crzldhzgqkcf9t6fa9rm8qkv2surp8g40djlkqawm9xjg437705jer")
                      "disable"
                      "{account.nftId}"
                  ;
@@ -435,76 +443,69 @@ namespace WebServer
             }
 
             var account = loginResponse.account;
-            try
-            {
-                // The network ID to use for this example.
-                const byte networkId = 0x02;
+            // The network ID to use for this example.
+            const byte networkId = 0x02;
 
-                // In this example we will use an ephemeral private key for the notary.
-                var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
-                    networkId
-                );
+            // In this example we will use an ephemeral private key for the notary.
+            var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
+                networkId
+            );
 
-                // Constructing the manifest
-                var xrd = new Address("resource_tdx_2_1t5sa940cqs2x52x93fjaca2fafmysst675k2hcezmdxjxduxj6gpwx");
+            // Constructing the manifest
+            var xrd = new Address("resource_tdx_2_1t5sa940cqs2x52x93fjaca2fafmysst675k2hcezmdxjxduxj6gpwx");
 
-                using var address1 =
-                    new Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt");
-                using var address2 =
-                    new Address(account.walletAddress);
+            using var address1 =
+                new Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt");
+            using var address2 =
+                new Address(account.walletAddress);
 
-                using var manifest = new ManifestBuilder()
-                    .AccountLockFeeAndWithdraw(address1, new RadixEngineToolkit.Decimal("10"), xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()))
-                    .TakeFromWorktop(xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()), new ManifestBuilderBucket("xrdBucket"))
-                    .AccountTryDepositOrAbort(address2, new ManifestBuilderBucket("xrdBucket"), null)
-                    .Build(networkId);
-                manifest.StaticallyValidate();
+            using var manifest = new ManifestBuilder()
+                .AccountLockFeeAndWithdraw(address1, new RadixEngineToolkit.Decimal("10"), xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()))
+                .TakeFromWorktop(xrd, new RadixEngineToolkit.Decimal((Int32.Parse(tier) * 100).ToString()), new ManifestBuilderBucket("xrdBucket"))
+                .AccountTryDepositOrAbort(address2, new ManifestBuilderBucket("xrdBucket"), null)
+                .Build(networkId);
+            manifest.StaticallyValidate();
 
-                // Constructing the transaction
-                var currentEpoch = await GatewayApiClient.CurrentEpoch();
-                using var transaction =
-                    new TransactionBuilder()
-                        .Header(
-                            new TransactionHeader(
-                                networkId,
-                                currentEpoch,
-                                (currentEpoch + 2),
-                                Utils.RandomNonce(),
-                                publicKey,
-                                true,
-                                0
-                            )
+            // Constructing the transaction
+            var currentEpoch = await GatewayApiClient.CurrentEpoch();
+            using var transaction =
+                new TransactionBuilder()
+                    .Header(
+                        new TransactionHeader(
+                            networkId,
+                            currentEpoch,
+                            (currentEpoch + 2),
+                            Utils.RandomNonce(),
+                            publicKey,
+                            true,
+                            0
                         )
-                        .Manifest(
-                            manifest
-                        )
-                        .Message(
-                            new Message.None()
-                        )
-                        .NotarizeWithPrivateKey(
-                            privateKey
-                        );
+                    )
+                    .Manifest(
+                        manifest
+                    )
+                    .Message(
+                        new Message.None()
+                    )
+                    .NotarizeWithPrivateKey(
+                        privateKey
+                    );
 
-                // Printing out the transaction ID and then submitting the transaction to the network.
-                using var transactionId = transaction.IntentHash();
-                Console.WriteLine(
-                    $"Transaction ID: {transactionId.AsStr()}"
-                );
+            // Printing out the transaction ID and then submitting the transaction to the network.
+            using var transactionId = transaction.IntentHash();
+            Console.WriteLine(
+                $"Transaction ID: {transactionId.AsStr()}"
+            );
 
-                await GatewayApiClient.SubmitTransaction(
-                    transaction
-                );
+            await GatewayApiClient.SubmitTransaction(
+                transaction
+            );
 
-                privateKey.Dispose();
+            privateKey.Dispose();
 
-                await Database.UpdateNft(account, "", "");
+            await Database.UpdateNft(account, "", "");
 
-                return new WebNftResponse(WebNftResult.Success, "");
-            }
-            finally
-            {
-                await Database.Logout(account, ServerName);
-            }
+            return new WebNftResponse(WebNftResult.Success, "");
         }
 
 
@@ -1045,6 +1046,34 @@ namespace WebServer
             }
 
             return false;
+        }
+
+        private async Task<object> HandleCreateCharacter(HttpListenerContext context, NameValueCollection query)
+        {
+            var caller = query["caller"];
+            var nfts = query["nfts"];
+
+            if (caller != "crawler" || AnyNull(nfts))
+            {
+                return new WebCreateCharacterResponse(WebCreateCharacterResult.InvalidRequest, 0);
+            }
+
+            var nftDatas = JsonConvert.DeserializeObject<List<WebCharacterJson>>(nfts);
+
+            for (var i = 0; i < nftDatas.Count; ++i)
+            {
+                var accountId = ulong.Parse(nftDatas[i].accountId);
+                var nftId = nftDatas[i].nftId;
+                var type = nftDatas[i].type;
+                var accountResponse = await Account.Get(accountId);
+                if (accountResponse.result == RequestResult.Success)
+                {
+                    var account = accountResponse.item;
+                    await Database.CreateCharacter(account, nftId, type);
+                }
+            }
+
+            return new WebCreateCharacterResponse(WebCreateCharacterResult.Success, 0);
         }
 
         private string privacyPolicyHtml = File.ReadAllText("Htmls/privacy_policy.html");

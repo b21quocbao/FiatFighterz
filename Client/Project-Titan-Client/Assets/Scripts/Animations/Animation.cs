@@ -6,7 +6,8 @@ public enum AnimationDirection
     Right,
     Up,
     Left,
-    Down
+    Down,
+    Avatar
 }
 
 public enum AnimationState

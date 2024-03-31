@@ -17,7 +17,7 @@ for (var i = 51; i <= 100; i++) secondHalf.push(`<FIATFIGHTERZ_${i}>`);
 
 async function process() {
   try {
-    const resource = "resource_tdx_2_1n23hu0ff96fuxhjlu9y6agtmufxhra4835xlx3p752pvlk7skhqg87";
+    const resource = "resource_tdx_2_1n2ru3vnlxh8q09k7rwaqdt3qf3v372rk6cj8tyz6h6fw4y3wmxm0df";
     const headers = {
       'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
       'Connection': 'keep-alive',
@@ -35,12 +35,12 @@ async function process() {
     }
 
     const accounts = (await client.send(new ScanCommand({ TableName: "local_titan_accounts" }))).Items;
-    const map = {} as Record<any, any>;
+    const mapVaultAddressToAccountId = {} as Record<any, any>;
     if (!accounts) return;
 
     for (let i = 0; i < accounts.length; ++i) {
       const account = accounts[i];
-      if (account.walletAddress && (!account.vault || !account.vault.S)) {
+      if (account.walletAddress) {
         const res = await axios.request({
           method: 'post',
           maxBodyLength: Infinity,
@@ -51,7 +51,7 @@ async function process() {
             resource_address: resource
           })
         })
-        const vault = res.data.items[0].vault_address;
+        const vault = res?.data?.items?.length ? res.data.items[0].vault_address : "empty";
         await client.send(new UpdateItemCommand({
           TableName: "local_titan_accounts", Key: {
             id: account.id,
@@ -63,9 +63,9 @@ async function process() {
           ReturnValues: "ALL_NEW",
         }));
 
-        map[vault] = account.id.N;
+        mapVaultAddressToAccountId[vault] = account.id.N;
       } else if (account.vault && account.vault.S) {
-        map[account.vault.S] = account.id.N;
+        mapVaultAddressToAccountId[account.vault.S] = account.id.N;
       }
     }
 
@@ -112,48 +112,39 @@ async function process() {
 
     const nftLocations = locationRes1.data.non_fungible_ids.concat(locationRes2.data.non_fungible_ids);
     const nftDatas = dataRes1.data.non_fungible_ids.concat(dataRes2.data.non_fungible_ids);
-    const nfts = {} as Record<any, any>;
+    const nfts = [] as any[];
 
     for (let i = 0; i < nftLocations.length; ++i) {
       const nftData = {
         status: nftDatas[i].data.programmatic_json.fields[2].value,
+        image: nftDatas[i].data.programmatic_json.fields[1].value,
         vault: nftLocations[i].owning_vault_address,
         id: nftLocations[i].non_fungible_id,
       }
-      if (nftData.status && map[nftData.vault]) {
-        if (!nfts[map[nftData.vault]]) nfts[map[nftData.vault]] = []
-        nfts[map[nftData.vault]].push({ S: nftData.id });
+      if (nftData.status && mapVaultAddressToAccountId[nftData.vault]) {
+        nfts.push({
+          nftId:  parseInt(nftData.id.substr(14)),
+          accountId: mapVaultAddressToAccountId[nftData.vault],
+          type: nftData.image.includes("ranger") ? 1 : (nftData.image.includes("warrior") ? 2 : 5),
+        });
       }
     }
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+    myHeaders.append("Access-Control-Allow-Origin", "*");
 
-    for (let i = 0; i < accounts.length; ++i) {
-      const account = accounts[i];
-      if (!account.id || !account.id.N) continue;
-      const nftIds = nfts[account.id.N] || [];
-      await client.send(new UpdateItemCommand({
-        TableName: "local_titan_accounts", Key: {
-          id: account.id,
-        },
-        UpdateExpression: "SET #Y = :y",
-        ConditionExpression: "attribute_exists(id)",
-        ExpressionAttributeNames: { "#Y": "nftIds" },
-        ExpressionAttributeValues: { ":y": { "L": nftIds } },
-        ReturnValues: "ALL_NEW",
-      }));
+    const urlencoded = new URLSearchParams();
+    urlencoded.append("caller", "crawler");
+    urlencoded.append("nfts", JSON.stringify(nfts));
 
-      if (nftIds.length) {
-        await client.send(new UpdateItemCommand({
-          TableName: "local_titan_accounts", Key: {
-            id: account.id,
-          },
-          UpdateExpression: "SET #Y = :y",
-          ConditionExpression: "attribute_exists(id)",
-          ExpressionAttributeNames: { "#Y": "nftId" },
-          ExpressionAttributeValues: { ":y": nftIds[0] },
-          ReturnValues: "ALL_NEW",
-        }));
-      }
-    }
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: urlencoded,
+    };
+
+    const res = await fetch("http://3.234.74.113:8443/v1/account/character", requestOptions);
+    const text = await res.text();
 
     console.log(new Date(), "success");
   } catch (error) {
@@ -164,10 +155,6 @@ async function process() {
     });
     process();
   }
-}
-
-async function dynamodb() {
-
 }
 
 process();

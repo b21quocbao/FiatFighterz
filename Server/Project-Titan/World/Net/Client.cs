@@ -339,19 +339,6 @@ namespace World.Net
                         return false;
                     }
                 }
-                else if (hello.createType > 0)
-                {
-                    var createResponse = await Database.CreateCharacter(account, hello.createType);
-                    if (createResponse.result != CreateCharacterResult.Success)
-                    {
-                        Disconnect();
-                        return false;
-                    }
-
-                    character = createResponse.character;
-
-                    SendAsync(new TnCreateResponse(character.id));
-                }
 
                 Log.Write("Successfully logged in: " + account.playerName);
                 nextLockHeartbeat = DateTime.UtcNow.AddSeconds(Heartbeat_Interval_Seconds);

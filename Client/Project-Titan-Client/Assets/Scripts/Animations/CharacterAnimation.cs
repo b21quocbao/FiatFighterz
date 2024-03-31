@@ -117,6 +117,7 @@ public class CharacterAnimation : Animation
     public readonly Sprite[] allSide;
     public readonly Sprite[] allUp;
     public readonly Sprite[] allDown;
+    public readonly Sprite[] allAvatar;
 
     public CharacterAnimation(CharacterTextureData textureData)
     {
@@ -179,6 +180,10 @@ public class CharacterAnimation : Animation
                 TextureManager.GetSprite(textureData.spriteSetName + "-14"),
                 TextureManager.GetSprite(textureData.spriteSetName + "-13")
         };
+        allAvatar = new Sprite[]
+        {
+                TextureManager.GetSprite(textureData.spriteSetName + "-avatar"),
+        };
     }
 
     public override Sprite[] GetFrames(AnimationState state, AnimationDirection direction)
@@ -212,6 +217,8 @@ public class CharacterAnimation : Animation
                         return allUp;
                     case AnimationDirection.Down:
                         return allDown;
+                    case AnimationDirection.Avatar:
+                        return allAvatar;
                     default:
                         return allSide;
                 }
