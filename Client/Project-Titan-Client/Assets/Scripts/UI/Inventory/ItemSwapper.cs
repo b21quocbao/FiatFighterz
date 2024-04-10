@@ -20,8 +20,6 @@ public class ItemSwapper : MonoBehaviour
 
     private Slot slot;
 
-    private WebClient.Response<WebNameChangeResponse> sellItemResponse;
-
     public bool DragStarted(Item item, Slot slot)
     {
         if (this.slot != null) return false;
@@ -64,7 +62,6 @@ public class ItemSwapper : MonoBehaviour
         {
             var info = slot.item.GetInfo();
             var equip = info as EquipmentInfo;
-            WebClient.SendSellItem(Account.savedAccessToken, ((int)equip.tier).ToString(), OnSellItemResponse);
             world.gameManager.client.SendAsync(new TnDrop(slot.owner.GetGameId(), (byte)(slot.slotIndex + 100)));
         }
 
@@ -89,10 +86,5 @@ public class ItemSwapper : MonoBehaviour
         }
 
         slot.Swap(otherSlot);
-    }
-
-    private void OnSellItemResponse(WebClient.Response<WebNameChangeResponse> response)
-    {
-        sellItemResponse = response;
     }
 }

@@ -136,15 +136,6 @@ public static class WebClient
         SendRequest("v1/account/changename", dict, callback);
     }
 
-    public static void SendSellItem(string accessToken, string tier, Action<Response<WebNameChangeResponse>> callback)
-    {
-        SendRequest("v1/account/sellitem", new Dictionary<string, string>()
-        {
-            { "token", Client.RsaEncrypt(accessToken) },
-            { "tier", tier },
-        }, callback);
-    }
-
     public static void SendLeaderboardDescribe(LeaderboardType type, Action<Response<WebLeaderboardResponse>> callback)
     {
         var dict = new Dictionary<string, string>()

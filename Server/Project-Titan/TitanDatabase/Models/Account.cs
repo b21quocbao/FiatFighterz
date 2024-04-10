@@ -317,7 +317,7 @@ namespace TitanDatabase.Models
             try
             {
                 // The network ID to use for this example.
-                const byte networkId = 0x02;
+                const byte networkId = 0x01;
 
                 // In this example we will use an ephemeral private key for the notary.
                 var (privateKey, publicKey, accountAddress) = Utils.NewAccount(
