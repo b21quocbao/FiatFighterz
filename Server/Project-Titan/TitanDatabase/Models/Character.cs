@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TitanCore.Core;
@@ -46,6 +47,26 @@ namespace TitanDatabase.Models
             {
                 result = RequestResult.Success,
                 item = obj
+            };
+        }
+
+        public static async Task<GetResponse<List<Character>>> List()
+        {
+            var request = new ScanRequest(Database.Table_Characters);
+            var response = await Database.Client.ScanAsync(request);
+            var characters = new List<Character>();
+            foreach (Dictionary<string, AttributeValue> item in response.Items)
+            {
+                
+                var obj = new Character();
+                obj.Read(new ItemReader(item));
+                characters.Add(obj);
+            }
+
+            return new GetResponse<List<Character>>
+            {
+                result = RequestResult.Success,
+                item = characters
             };
         }
 

@@ -106,10 +106,6 @@ namespace TitanDatabase.Models
 
         public string email;
 
-        public string nftId;
-
-        public List<string> nftIds = new List<string>();
-
         public string walletAddress;
 
         public Rank rank = Rank.Player;
@@ -169,8 +165,6 @@ namespace TitanDatabase.Models
             unlockedItems = new HashSet<uint>(r.UInt32List("items"));
             SetClassQuests(r.UInt32List("classQuests"));
             givenRewards = r.Int32("givenRewards");
-            nftId = r.String("nftId");
-            nftIds = r.StringList("nftIds");
             walletAddress = r.String("walletAddress");
 
             ExpandVault(vaultIds);
@@ -198,8 +192,6 @@ namespace TitanDatabase.Models
             w.Write("items", unlockedItems.ToList());
             w.Write("classQuests", ExportClassQuestBinaries());
             w.Write("givenRewards", givenRewards);
-            w.Write("nftId", nftId);
-            w.Write("nftIds", nftIds);
             w.Write("walletAddress", walletAddress);
         }
 
@@ -335,23 +327,23 @@ namespace TitanDatabase.Models
                 // Constructing the manifest
                 var manifestString = $"""
                  CALL_METHOD
-                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     Address("account_rdx12xv9rcgd5l4cyt9tx0ghzdryl4kkalktlhxe94uy4szy5pa9xly7ky")
                      "lock_fee"
                      Decimal("100")
                  ;
                  CALL_METHOD
-                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     Address("account_rdx12xv9rcgd5l4cyt9tx0ghzdryl4kkalktlhxe94uy4szy5pa9xly7ky")
                      "create_proof_of_amount"
-                     Address("resource_tdx_2_1tk5xtvqdtcjvdxhzzvg2qgmntx23cv0s20ryzsjy60qev93hsyej2j")
+                     Address("resource_rdx1t5pdml3cu95z8rd28jywr2yduqs88tj64ulz3l2qcptqzqd8dpwzcc")
                      Decimal("1")
                  ;
                  CALL_METHOD
-                     Address("component_tdx_2_1crzldhzgqkcf9t6fa9rm8qkv2surp8g40djlkqawm9xjg437705jer")
+                     Address("resource_rdx1t5pdml3cu95z8rd28jywr2yduqs88tj64ulz3l2qcptqzqd8dpwzcc")
                      "disable"
-                     "FIATFIGHTERZ_{id}"
+                     Decimal("{id}")
                  ;
                  CALL_METHOD
-                     Address("account_tdx_2_12yxmpmnzxvqvkpdsh0vk5l6jcjqj99mdx7jf7v9mz8c0haz260xqyt")
+                     Address("account_rdx12xv9rcgd5l4cyt9tx0ghzdryl4kkalktlhxe94uy4szy5pa9xly7ky")
                      "try_deposit_batch_or_refund"
                      Expression("ENTIRE_WORKTOP")
                      Enum<0u8>()
@@ -454,12 +446,12 @@ namespace TitanDatabase.Models
             public static async Task<ulong> CurrentEpoch()
             {
                 var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/status/gateway-status");
-                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://mainnet.radixdlt.com/status/gateway-status");
+                request.Headers.Add("authority", "mainnet.radixdlt.com");
                 request.Headers.Add("accept", "application/json");
                 request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
-                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
-                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("origin", "https://mainnet.radixdlt.com");
+                request.Headers.Add("referer", "https://mainnet.radixdlt.com/swagger/");
                 request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
                 request.Headers.Add("sec-ch-ua-mobile", "?0");
                 request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
@@ -483,12 +475,12 @@ namespace TitanDatabase.Models
                 /* Submit to the Gateway API */
 
                 var client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://stokenet.radixdlt.com/transaction/submit");
-                request.Headers.Add("authority", "stokenet.radixdlt.com");
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://mainnet.radixdlt.com/transaction/submit");
+                request.Headers.Add("authority", "mainnet.radixdlt.com");
                 request.Headers.Add("accept", "application/json");
                 request.Headers.Add("accept-language", "en-US,en;q=0.9,vi;q=0.8");
-                request.Headers.Add("origin", "https://stokenet.radixdlt.com");
-                request.Headers.Add("referer", "https://stokenet.radixdlt.com/swagger/");
+                request.Headers.Add("origin", "https://mainnet.radixdlt.com");
+                request.Headers.Add("referer", "https://mainnet.radixdlt.com/swagger/");
                 request.Headers.Add("sec-ch-ua", "\"Not A(Brand\";v=\"99\", \"Google Chrome\";v=\"121\", \"Chromium\";v=\"121\"");
                 request.Headers.Add("sec-ch-ua-mobile", "?0");
                 request.Headers.Add("sec-ch-ua-platform", "\"Windows\"");

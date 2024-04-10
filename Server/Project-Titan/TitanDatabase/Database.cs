@@ -1420,9 +1420,8 @@ namespace TitanDatabase
             return new WebNameChangeResponse(WebNameChangeResult.Success, toName);
         }
 
-        public static async Task<WebNftResponse> UpdateNft(Account account, string nftId, string walletAddress)
+        public static async Task<WebNftResponse> UpdateWalletAddress(Account account, string walletAddress)
         {
-            account.nftId = nftId;
             account.walletAddress = walletAddress;
 
             var existingWalletAddress = await WalletAddress.Get(walletAddress);
@@ -1443,34 +1442,17 @@ namespace TitanDatabase
                         return new WebNftResponse(WebNftResult.InternalServerError, "");
                     }
 
-                    return new WebNftResponse(WebNftResult.Success, account.nftId);
+                    return new WebNftResponse(WebNftResult.Success, account.walletAddress);
 
                 case RequestResult.Success:
                     if (existingWalletAddress.item.accountId == account.id)
                     {
-                        var saveResponse2 = await account.Put();
-                        if (saveResponse2.result != RequestResult.Success)
-                        {
-                            return new WebNftResponse(WebNftResult.InternalServerError, "");
-                        }
+                        return new WebNftResponse(WebNftResult.Success, account.walletAddress);
                     }
                     return new WebNftResponse(WebNftResult.InternalServerError, "");
                 default:
                     return new WebNftResponse(WebNftResult.InternalServerError, "");
             }
-        }
-
-        public static async Task<WebNftResponse> DeleteNft(Account account)
-        {
-            account.nftId = "";
-
-            var saveResponse = await account.Put();
-            if (saveResponse.result != RequestResult.Success)
-            {
-                return new WebNftResponse(WebNftResult.InternalServerError, "");
-            }
-
-            return new WebNftResponse(WebNftResult.Success, account.nftId);
         }
 
         #endregion

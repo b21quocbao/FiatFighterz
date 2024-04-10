@@ -10,14 +10,9 @@ const client = new DynamoDBClient({
   credentials: { accessKeyId: "test", secretAccessKey: "test" },
 });
 
-const firstHalf = [] as string[];
-const secondHalf = [] as string[];
-for (var i = 1; i <= 50; i++) firstHalf.push(`<FIATFIGHTERZ_${i}>`);
-for (var i = 51; i <= 100; i++) secondHalf.push(`<FIATFIGHTERZ_${i}>`);
-
 async function process() {
   try {
-    const resource = "resource_tdx_2_1n2ru3vnlxh8q09k7rwaqdt3qf3v372rk6cj8tyz6h6fw4y3wmxm0df";
+    const resource = "resource_rdx1ntfwv7psqnezjwxadr5snrwfwyyrlhzmjq7ta5pe4r2yxd5vsxjd0t";
     const headers = {
       'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
       'Connection': 'keep-alive',
@@ -40,11 +35,11 @@ async function process() {
 
     for (let i = 0; i < accounts.length; ++i) {
       const account = accounts[i];
-      if (account.walletAddress) {
+      if (account.walletAddress && (!account.vault || !account.vault.S || account.vault.S == "empty")) {
         const res = await axios.request({
           method: 'post',
           maxBodyLength: Infinity,
-          url: 'https://cors.redoc.ly/https://stokenet.radixdlt.com/state/entity/page/non-fungible-vaults/',
+          url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/entity/page/non-fungible-vaults/',
           headers,
           data: JSON.stringify({
             address: account.walletAddress.S,
@@ -69,63 +64,50 @@ async function process() {
       }
     }
 
-    const [locationRes1, locationRes2, dataRes1, dataRes2] = await Promise.all([
+    const componentInfo = await axios.request({
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/entity/details',
+      headers: headers,
+      data: JSON.stringify({
+        "addresses": [
+          "component_rdx1crcspy6mgld846hvfk8t3xtm2ugns99x7dfdjspzsdhyrugw8kemw7"
+        ]
+      })
+    })
+    let usableNfts = componentInfo.data.items[0].details.state.fields[3].elements.map((x: any) => `<FIATFIGHTERZ_${x.value}>`);
+    let disableNfts = componentInfo.data.items[0].details.state.fields[2].elements.map((x: any) => Number(x.value));
+
+    const chunkSize = 50, usableNftsChunks = [] as any[];
+    for (let i = 0; i < usableNfts.length; i += chunkSize) {
+      usableNftsChunks.push(usableNfts.slice(i, i + chunkSize));
+    }
+
+    const nftLocations = (await Promise.all(usableNftsChunks.map(chunk => 
       axios.request({
         method: 'post',
         maxBodyLength: Infinity,
-        url: 'https://cors.redoc.ly/https://stokenet.radixdlt.com/state/non-fungible/location',
+        url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/non-fungible/location',
         headers,
         data: JSON.stringify({
           resource_address: resource,
-          non_fungible_ids: firstHalf
+          non_fungible_ids: chunk
         })
       }),
-      axios.request({
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'https://cors.redoc.ly/https://stokenet.radixdlt.com/state/non-fungible/location',
-        headers,
-        data: JSON.stringify({
-          resource_address: resource,
-          non_fungible_ids: secondHalf
-        })
-      }), axios.request({
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'https://cors.redoc.ly/https://stokenet.radixdlt.com/state/non-fungible/data',
-        headers,
-        data: JSON.stringify({
-          resource_address: resource,
-          non_fungible_ids: firstHalf
-        })
-      }), axios.request({
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'https://cors.redoc.ly/https://stokenet.radixdlt.com/state/non-fungible/data',
-        headers,
-        data: JSON.stringify({
-          resource_address: resource,
-          non_fungible_ids: secondHalf
-        })
-      })
-    ]);
+    ))).map((x: any) => x.data.non_fungible_ids).flat();
 
-    const nftLocations = locationRes1.data.non_fungible_ids.concat(locationRes2.data.non_fungible_ids);
-    const nftDatas = dataRes1.data.non_fungible_ids.concat(dataRes2.data.non_fungible_ids);
     const nfts = [] as any[];
 
     for (let i = 0; i < nftLocations.length; ++i) {
-      const nftData = {
-        status: nftDatas[i].data.programmatic_json.fields[2].value,
-        image: nftDatas[i].data.programmatic_json.fields[1].value,
-        vault: nftLocations[i].owning_vault_address,
-        id: nftLocations[i].non_fungible_id,
-      }
-      if (nftData.status && mapVaultAddressToAccountId[nftData.vault]) {
+      const nftId = parseInt(nftLocations[i].non_fungible_id.substr(14));
+      const accountId = mapVaultAddressToAccountId[nftLocations[i].owning_vault_address];
+      const enabled = !disableNfts.includes(nftId);
+      
+      if (enabled && accountId) {
         nfts.push({
-          nftId:  parseInt(nftData.id.substr(14)),
-          accountId: mapVaultAddressToAccountId[nftData.vault],
-          type: nftData.image.includes("ranger") ? 1 : (nftData.image.includes("warrior") ? 2 : 5),
+          nftId: nftId,
+          accountId: accountId,
+          type: (nftId > 0 && nftId < 10000) ? 1 : (nftId > 10000 && nftId < 20000) ? 2 : 5,
         });
       }
     }
