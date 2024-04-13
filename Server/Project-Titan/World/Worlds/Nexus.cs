@@ -18,77 +18,11 @@ namespace World.Worlds
     {
         #region Market Items
 
-        #region Packages
-
-        private static MarketItem[] packageItems = new MarketItem[]
-        {
-            new MarketItem(new Item(0x2a9, true, 1), 0, 1000), // beginner's pack
-        };
-
-        #endregion
-
-        #region Emotes
-
-        private static MarketItem[] emoteItems = new MarketItem[]
-        {
-            new MarketItem(new Item(0x2000, true, 1), 1000, 150), // f
-            new MarketItem(new Item(0x2001, true, 1), 1000, 150), // heart
-            new MarketItem(new Item(0x2002, true, 1), 1000, 150), // danger
-            new MarketItem(new Item(0x2003, true, 1), 1000, 150), // thumbs up
-            new MarketItem(new Item(0x2004, true, 1), 1000, 150), // rare chest
-        };
-
-        #endregion
-
         #region Pet Totems
 
         private static MarketItem[] companionItems = new MarketItem[]
         {
             new MarketItem(new Item(0x3003, true, 1), 3500, 300), // snail companion
-            new MarketItem(new Item(0x3001, true, 1), 4000, 400), // hula companion
-            new MarketItem(new Item(0x3005, true, 1), 4500, 500), // mammoth companion
-            new MarketItem(new Item(0x3007, true, 1), 4000, 400), // tortoise companion
-        };
-
-        #endregion
-
-        #region Antiques
-
-        private static MarketItem[] antiqueItems = new MarketItem[]
-        {
-            new MarketItem(new Item(0x2a6, true, 3), 0, 35), // health vial
-            new MarketItem(new Item(0x2a7, true, 1), 25, 15), // healing spell
-            //new MarketItem(new Item(0x2aa, false, 1), 12000, 0), // soulless ring
-            new MarketItem(new Item(0x2ab, false, 1), 8000, 0), // soulless robe
-            new MarketItem(new Item(0x2ac, false, 1), 8000, 0), // soulless heavy armor
-            new MarketItem(new Item(0x2ad, false, 1), 8000, 0), // soulless light armor
-            /*
-            new MarketItem(new Item("Scroll of Agility", true, 1), 0, 0),
-            new MarketItem(new Item("Scroll of Power", true, 1), 0, 0),
-            new MarketItem(new Item("Scroll of Fortitude", true, 1), 0, 0),
-            new MarketItem(new Item("Scroll of Stamina", true, 1), 0, 0),
-            new MarketItem(new Item("Scroll of Life", true, 1), 0, 0),
-            */
-        };
-
-        #endregion
-
-        #region Skins
-
-        private static MarketItem[] skinItems = new MarketItem[]
-        {
-            new MarketItem(new Item(0x5000, true, 1), 0, 850), // dragon warrior
-            new MarketItem(new Item(0x5001, true, 1), 0, 850), // mist dancer
-            new MarketItem(new Item(0x5002, true, 1), 0, 850), // soul hunter
-            new MarketItem(new Item(0x5003, true, 1), 0, 850), // plague doctor
-            new MarketItem(new Item(0x5004, true, 1), 0, 850), // prince of sands
-            new MarketItem(new Item(0x5005, true, 1), 2000, 300), // baldweaver
-            new MarketItem(new Item(0x5006, true, 1), 0, 850), // mannah's guard
-            new MarketItem(new Item(0x5007, true, 1), 0, 1600), // mythic brotherhood
-            new MarketItem(new Item(0x5008, true, 1), 0, 850), // crusading commander
-            new MarketItem(new Item(0x5009, true, 1), 0, 850), // black lancer
-            new MarketItem(new Item(0x500a, true, 1), 0, 850), // crusading minister
-            new MarketItem(new Item(0x500b, true, 1), 0, 1600), // master of the order
         };
 
         #endregion
@@ -151,11 +85,7 @@ namespace World.Worlds
 
             portalPositions = new List<Int2>(GetRegions(Region.Portal));
 
-            CreateMarketShop(GetRegions(Region.Shop1), skinItems);
             CreateMarketShop(GetRegions(Region.Shop2), companionItems);
-            CreateMarketShop(GetRegions(Region.Shop3), emoteItems);
-            CreateMarketShop(GetRegions(Region.Shop4), antiqueItems);
-            CreateMarketShop(GetRegions(Region.Tag1), packageItems);
         }
 
         private void CreateMarketShop(IEnumerable<Int2> points, params MarketItem[] items)

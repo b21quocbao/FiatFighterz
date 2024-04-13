@@ -12,7 +12,7 @@ const client = new DynamoDBClient({
 
 async function process() {
   try {
-    const resource = "resource_rdx1ntfwv7psqnezjwxadr5snrwfwyyrlhzmjq7ta5pe4r2yxd5vsxjd0t";
+    const resource = "resource_rdx1ngzqt45zkhrrhetevsuhhnp09fvh6sa86gfskx7wekme7qntg87yrm";
     const headers = {
       'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
       'Connection': 'keep-alive',
@@ -71,7 +71,7 @@ async function process() {
       headers: headers,
       data: JSON.stringify({
         "addresses": [
-          "component_rdx1crcspy6mgld846hvfk8t3xtm2ugns99x7dfdjspzsdhyrugw8kemw7"
+          "component_rdx1crajkc2sk00r5j4zxu0fzs33xl2gjcthj928cu7l2ctsjtsdu8j9f2"
         ]
       })
     })

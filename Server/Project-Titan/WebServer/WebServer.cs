@@ -432,19 +432,13 @@ namespace WebServer
 
             token = DecryptString(token);
 
-            var loginResponse = await Database.Login(token, ServerName);
-            if (loginResponse.result != LoginResult.Success)
+            var accountResponse = await Account.Get(ulong.Parse(token));
+            if (accountResponse.result != RequestResult.Success)
             {
-                switch (loginResponse.result)
-                {
-                    case LoginResult.AccountInUse:
-                        return new WebNftResponse(WebNftResult.AccountInUse, "");
-                    default:
-                        return new WebNftResponse(WebNftResult.InternalServerError, "");
-                }
+                return new WebNftResponse(WebNftResult.InternalServerError, "");
             }
 
-            var account = loginResponse.account;
+            var account = accountResponse.item;
 
             var walletAddress = query["walletAddress"];
 

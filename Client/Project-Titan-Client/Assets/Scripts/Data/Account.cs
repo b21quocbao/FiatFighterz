@@ -58,7 +58,7 @@ public static class Account
 
     public static WebServerInfo GetSelectedServer()
     {
-        var selected = PlayerPrefs.GetString("selectedServer", null);
+        var selected = "Local";
         if (selected == null || describe == null || describe.servers == null) return null;
         foreach (var server in describe.servers)
             if (server.name.Equals(selected))

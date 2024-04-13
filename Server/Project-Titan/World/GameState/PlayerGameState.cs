@@ -639,12 +639,12 @@ namespace World.GameState
                     continue;
                 }
 
-                if (time > proj.hitTime)
-                {
-                    Log.Error("Kicked for cheating");
-                    player.client.Disconnect();
-                    return;
-                }
+                // if (time > proj.hitTime)
+                // {
+                //     Log.Error("Kicked for cheating");
+                //     player.client.Disconnect();
+                //     return;
+                // }
 
                 var projPos = proj.GetPosition(time);
                 if (!cantBeHit && projPos.DistanceTo(position) * 1.1f < proj.radius + radius) // did hit

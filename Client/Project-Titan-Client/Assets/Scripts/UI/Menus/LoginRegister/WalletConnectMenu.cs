@@ -42,7 +42,7 @@ public class WalletConnectMenu : MonoBehaviour
 
     public void OpenConnectUrl()
     {
-        Application.OpenURL("https://react-dashboard-git-main-fiatfighters.vercel.app/?token=" + Client.RsaEncrypt(Account.savedAccessToken));
+        Application.OpenURL("https://app.fiatfighters.com/?token=" + Client.RsaEncrypt(Account.describe.accountId.ToString()));
     }
 
     public void Continue()

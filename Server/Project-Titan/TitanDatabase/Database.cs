@@ -894,10 +894,10 @@ namespace TitanDatabase
                     var existingCharacter = existingCharacterResult.item;
                     if (existingCharacter.accountId != account.id)
                     {
-                        var loginResponse = await Database.Login(existingCharacter.accountId, "Web");
-                        if (loginResponse.result == LoginResult.Success)
+                        var accountResponse = await Account.Get(existingCharacter.accountId);
+                        if (accountResponse.result == RequestResult.Success)
                         {
-                            var existingAccount = loginResponse.account;
+                            var existingAccount = accountResponse.item;
                             existingAccount.characters.Remove(existingCharacter.id);
                             await existingAccount.Put();
                         }

@@ -38,7 +38,7 @@
     <Type>PetSpawner</Type>
 
     <Pet>0x3002</Pet>
-    <Description>Used to call a companion Snail to your side! A Snail can carry up to 8 of your items.</Description>
+    <Description>Drag item into the "Drop Here" button to sell your items. Tokens automatically sent to wallet.</Description>
     <Consumable/>
   </Object>
 
