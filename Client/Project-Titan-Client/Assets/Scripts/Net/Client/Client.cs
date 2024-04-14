@@ -19,10 +19,6 @@ public class Client : NetConnection<TnPacket>//UdpClient<TnPacket>
 {
     private static Rsa rsa = new Rsa(NetConstants.Rsa_Public_Key, false);
 
-    //private const string Game_Host = "3.17.35.212";
-
-    private const string Game_Host = "3.234.74.113";
-
     public static string RsaEncrypt(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);

@@ -205,12 +205,6 @@ public class Player : Character
                 soulGoal = (int)stat.value;
                 world.gameManager.ui.OnSoulsUpdated(fullSouls, soulGoal);
                 break;
-            case ObjectStatType.PremiumCurrency:
-                world.gameManager.ui.SetPremiumCurrency((long)stat.value);
-                break;
-            case ObjectStatType.DeathCurrency:
-                world.gameManager.ui.SetDeathCurrency((long)stat.value);
-                break;
             case ObjectStatType.Rage:
                 rage = (byte)stat.value;
                 break;

@@ -34,10 +34,6 @@ public abstract class GameUI : MonoBehaviour
 
     public VaultMenu vaultMenu;
 
-    public TextMeshProUGUI premiumCurrencyLabel;
-
-    public TextMeshProUGUI deathCurrencyLabel;
-
     public TooltipManager tooltipManager;
 
     public Image abilityImage;
@@ -152,16 +148,6 @@ public abstract class GameUI : MonoBehaviour
     {
         if (interactPanel == null) return;
         interactPanel.SetInteractable(interactable);
-    }
-
-    public void SetPremiumCurrency(long amount)
-    {
-        premiumCurrencyLabel.text = $"{Constants.Premium_Currency_Sprite}{amount.ToString("N0")}";
-    }
-
-    public void SetDeathCurrency(long amount)
-    {
-        deathCurrencyLabel.text = $"{Constants.Death_Currency_Sprite}{amount.ToString("N0")}";
     }
 
     public abstract void TileDiscovered(MapTile tile);
