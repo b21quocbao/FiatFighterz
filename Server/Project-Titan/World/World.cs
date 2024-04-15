@@ -211,16 +211,6 @@ namespace World
                             objs.objectType = 0;
                             map.tiles[x, y] = objs;
                             break;
-                        case GameObjectType.Wardrobe:
-
-                            var wardrobe = new Wardrobe();
-                            wardrobe.position.Value = new Vec2(x + 0.5f, y + 0.5f) + offset;
-                            wardrobe.Initialize(info);
-                            objects.AddObject(wardrobe);
-
-                            objs.objectType = 0;
-                            map.tiles[x, y] = objs;
-                            break;
                         case GameObjectType.Npc:
 
                             var npc = new Npc();

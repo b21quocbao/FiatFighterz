@@ -231,11 +231,11 @@ namespace World
         {
             Log.Write("Connecting to broadcaster...");
             broadcastConnection = new BroadcastConnection();
-            #if DEBUG
+#if DEBUG
                 broadcastConnection.ConnectAsync(ModularProgram.manifest.Value("webServerIp", "127.0.0.1"), BroadcastListener.Port, BroadcasterConnected);
-            #else
+#else
                 broadcastConnection.ConnectAsync(ModularProgram.manifest.Value("webServerIp", "3.234.74.113"), BroadcastListener.Port, BroadcasterConnected);
-            #endif
+#endif
         }
 
         private async void BroadcasterConnected(bool success, NetConnection<BrPacket> net)
