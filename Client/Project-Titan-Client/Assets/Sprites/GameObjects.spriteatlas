@@ -258,6 +258,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 2580b9e19aebbf84ab3231541173e6b6, type: 3}
   - {fileID: 21300000, guid: 936a5ce1a03a7f74493b720cd1cad041, type: 3}
   - {fileID: 21300000, guid: fa8c0ee15f789d749af24c0ede2e6c04, type: 3}
+  - {fileID: 21300000, guid: 08747fe1ef90eab42848445ae6caf99a, type: 3}
   - {fileID: 21300000, guid: 2192ffe1757ce1e41912db92ccb2a3b4, type: 3}
   - {fileID: 21300000, guid: f26080f19ed9e4d438cb51812587f5ad, type: 3}
   - {fileID: 21300000, guid: f75a54f1f9195094a962c0869e4e4616, type: 3}
@@ -355,6 +356,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 859026d2b87fc3a4cb131afc1b36b452, type: 3}
   - {fileID: 21300000, guid: 509896d2fce73ba4587ee2c0123b1a69, type: 3}
   - {fileID: 21300000, guid: 7bd4aed2acbefe2498007c7aba09ca34, type: 3}
+  - {fileID: 21300000, guid: d35e30e296bd3ad4597f9f6474bec47d, type: 3}
   - {fileID: 21300000, guid: 791ce0e2c54c9894bb2ae62a13eb316b, type: 3}
   - {fileID: 21300000, guid: 892e88e2922827d48ab44f693e707516, type: 3}
   - {fileID: 21300000, guid: 2909a9e2a64e5b7429a147d67c8cd486, type: 3}
@@ -1585,6 +1587,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 5a8c779f082126d4592c79017ef70a76, type: 3}
   - {fileID: 21300000, guid: 8475499fa6391294c9e74d93ed0da96f, type: 3}
   - {fileID: 21300000, guid: d6d9e99fc0e346745b6f80941c504ef2, type: 3}
+  - {fileID: 21300000, guid: 16bd62aff76fefb46a862c324a2ec9d6, type: 3}
   - {fileID: 21300000, guid: b0b06dafab5c9f44a9df01cb2b56d5f1, type: 3}
   - {fileID: 21300000, guid: b41132bfaa72ae848aa50b90adfc3c62, type: 3}
   - {fileID: 21300000, guid: bc7636bfe5c001a45a3c0d089b11806c, type: 3}
@@ -1820,6 +1823,7 @@ SpriteAtlas:
   - AncientBoneWormBack-Burrow-3
   - SleepingZ
   - Bhognin-2
+  - DragonKnight-avatar
   - Black Knight Jab 3
   - WarriorZebt-1
   - Claymore 6
@@ -1917,6 +1921,7 @@ SpriteAtlas:
   - Bow 7 Arrow
   - OrcBladesman-3
   - BubraMaleVillager-1
+  - SoulRanger-avatar
   - Bank Sword
   - Brittlebone-Rise-5
   - BubraSkilledWarrior-1
@@ -3147,6 +3152,7 @@ SpriteAtlas:
   - DemonBrute-1
   - DragonKnight-13
   - Mannah Gold Wave
+  - Berserker-avatar
   - Brewer-11
   - Mannah-PowerUp-9
   - WoodConstruct-2
