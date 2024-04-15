@@ -176,16 +176,16 @@ namespace Utils.NET.Logging
             while (!_stopped)
             {
                 WriteQueue();
-                while (Console.KeyAvailable)
-                {
-                    var key = Console.ReadKey(true);
-                    switch (key.Key)
-                    {
-                        case ConsoleKey.Q:
-                            StopLog();
-                            break;
-                    }
-                }
+                //while (Console.KeyAvailable)
+                //{
+                //    var key = Console.ReadKey(true);
+                //    switch (key.Key)
+                //    {
+                //        case ConsoleKey.Q:
+                //            StopLog();
+                //            break;
+                //    }
+                //}
                 _event.WaitOne(50);
             }
         }

@@ -14,19 +14,14 @@ namespace TitanDatabase.Email
     {
         private static AmazonSimpleEmailServiceClient client = new AmazonSimpleEmailServiceClient(AwsConstants.Key, AwsConstants.Secret, RegionEndpoint.USWest2);
 
-        private const string Email_Source = "noreply@trialsoftitan.com";
+        private const string Email_Source = "noreply@fiatfighters.com";
 
-        private const string Web_Server_Url =
-#if DEBUG
-            "https://local.trialsoftitan.com:8443";
-#else
-            "https://web.trialsoftitan.com";
-#endif
+        private const string Web_Server_Url = "https://fiatfighters.com/";
 
         private static TemplateEmail verificationTemplate = new TemplateEmail(
-"Welcome to Trials of Titan! <br><br>Before you can play, we need to verify your email! <br><br>Just visit this link to verify your email address: <br><br>#link <br><br>This verification link will expire in 24 hours",
+"Welcome to FiatFighterz! <br><br>Before you can play, we need to verify your email! <br><br>Just visit this link to verify your email address: <br><br>#link <br><br>This verification link will expire in 24 hours",
 
-"Welcome to Trials of Titan! \n\nBefore you can play, we need to verify your email! \n\nJust visit this link to verify your email address: \n\n#link \n\nThis verification link will expire in 24 hours", '#');
+"Welcome to FiatFighterz! \n\nBefore you can play, we need to verify your email! \n\nJust visit this link to verify your email address: \n\n#link \n\nThis verification link will expire in 24 hours", '#');
 
         public static Task<bool> SendVerificationEmail(string address, string token)
         {
@@ -45,7 +40,7 @@ namespace TitanDatabase.Email
                 },
                 Message = new Message
                 {
-                    Subject = new Content("[Trials of Titan] Verify your email"),
+                    Subject = new Content("[FiatFighterz] Verify your email"),
                     Body = new Body
                     {
                         Html = new Content
@@ -76,7 +71,7 @@ namespace TitanDatabase.Email
                 },
                 Message = new Message
                 {
-                    Subject = new Content("[Trials of Titan] Bug Report"),
+                    Subject = new Content("[FiatFighterz] Bug Report"),
                     Body = new Body
                     {
                         Text = new Content

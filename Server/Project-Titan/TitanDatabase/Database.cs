@@ -1122,11 +1122,7 @@ namespace TitanDatabase
                 server = currentServer,
                 creationDate = DateTime.UtcNow
             };
-#if DEBUG
-            var lockResponse = await accountLock.Put("attribute_not_exists(accountId) OR creationDate < :date", new Dictionary<string, AttributeValue> { { ":date", new AttributeValue { N = DateTime.UtcNow.AddMinutes(10).Ticks.ToString() } } });
-#else
-            var lockResponse = await accountLock.Put("attribute_not_exists(accountId) OR creationDate < :date", new Dictionary<string, AttributeValue> { { ":date", new AttributeValue { N = DateTime.UtcNow.AddMinutes(-10).Ticks.ToString() } } });
-#endif
+            var lockResponse = await accountLock.Put("attribute_not_exists(accountId) OR creationDate < :date", new Dictionary<string, AttributeValue> { { ":date", new AttributeValue { N = DateTime.UtcNow.AddMinutes(-3).Ticks.ToString() } } });
             if (lockResponse.result != RequestResult.Success)
             {
                 switch (lockResponse.result)

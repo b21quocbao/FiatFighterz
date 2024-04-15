@@ -33,11 +33,11 @@ public static class WebClient
         }
     }
 
-    private static string Web_Server_Url = "https://web.trialsoftitan.com/";
+    private static string Local_Web_Server_Url = "http://127.0.0.1:8443/";
 
-    private static string Local_Web_Server_Url = "http://3.234.74.113:8443/";
+    private static string Remote_Web_Server_Url = "http://3.234.74.113:8443/";
 
-    private static string Debug_Web_Server_Url = Local_Web_Server_Url;
+    private static string Web_Server_Url = Remote_Web_Server_Url;
 
     private static HttpClient client = new HttpClient()
     {
@@ -63,7 +63,7 @@ public static class WebClient
         T result = default;
         try
         {
-            string url = Debug_Web_Server_Url + path;
+            string url = Web_Server_Url + path;
 
             var content = new FormUrlEncodedContent(query);
             var response = await client.PostAsync(url, content);

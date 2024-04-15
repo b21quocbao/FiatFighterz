@@ -39,11 +39,7 @@ namespace WebServer
 {
     public class WebServer
     {
-#if DEBUG
         private const string Prefix = "http://*:8443/";
-#else
-        private const string Prefix = "https://*.trialsoftitan.com/";
-#endif
 
         private const string ServerName = "Web";
 
