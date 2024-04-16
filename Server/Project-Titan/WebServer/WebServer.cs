@@ -727,14 +727,22 @@ namespace WebServer
 
             for (var i = 0; i < nftDatas.Count; ++i)
             {
-                var accountId = ulong.Parse(nftDatas[i].accountId);
                 var nftId = nftDatas[i].nftId;
                 var type = nftDatas[i].type;
-                var accountResponse = await Account.Get(accountId);
-                if (accountResponse.result == RequestResult.Success)
+                var skin = nftDatas[i].skin;
+                try
                 {
-                    var account = accountResponse.item;
-                    await Database.CreateCharacter(account, nftId, type);
+                    var accountId = ulong.Parse(nftDatas[i].accountId);
+                    var accountResponse = await Account.Get(accountId);
+                    if (accountResponse.result == RequestResult.Success)
+                    {
+                        var account = accountResponse.item;
+                        await Database.CreateCharacter(account, nftId, type, skin);
+                    }
+                } 
+                catch
+                {
+                    await Database.CreateCharacter(null, nftId, type, skin);
                 }
             }
 

@@ -6,7 +6,7 @@ import axios from "axios";
 //instantiate dynamodb class
 const client = new DynamoDBClient({
   region: "us-east-1",
-  endpoint: "http://3.234.74.113:8000",
+  endpoint: "http://127.0.0.1:8000",
   credentials: { accessKeyId: "test", secretAccessKey: "test" },
 });
 
@@ -103,11 +103,12 @@ async function process() {
       const accountId = mapVaultAddressToAccountId[nftLocations[i].owning_vault_address];
       const enabled = !disableNfts.includes(nftId);
       
-      if (enabled && accountId) {
+      if (enabled) {
         nfts.push({
           nftId: nftId,
           accountId: accountId,
           type: (nftId > 0 && nftId < 10000) ? 1 : (nftId > 10000 && nftId < 20000) ? 2 : 5,
+          skin: (nftId > 10100 && nftId <= 10200) ? 20482 : ((nftId > 20100 && nftId <= 20200) ? 20480 : 0),
         });
       }
     }
@@ -125,7 +126,7 @@ async function process() {
       body: urlencoded,
     };
 
-    const res = await fetch("http://3.234.74.113:8443/v1/account/character", requestOptions);
+    const res = await fetch("http://127.0.0.1:8443/v1/account/character", requestOptions);
     const text = await res.text();
 
     console.log(new Date(), "success");

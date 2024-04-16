@@ -885,14 +885,14 @@ namespace TitanDatabase
             return items;
         }
 
-        public static async Task<CreateCharacterResponse> CreateCharacter(Account account, ulong nftId, ushort type)
+        public static async Task<CreateCharacterResponse> CreateCharacter(Account account, ulong nftId, ushort type, ushort skin)
         {
             var existingCharacterResult = await Character.Get(nftId);
             switch (existingCharacterResult.result)
             {
                 case RequestResult.Success:
                     var existingCharacter = existingCharacterResult.item;
-                    if (existingCharacter.accountId != account.id)
+                    if ((account == null && existingCharacter.accountId != 0) || (account != null && existingCharacter.accountId != account.id))
                     {
                         var accountResponse = await Account.Get(existingCharacter.accountId);
                         if (accountResponse.result == RequestResult.Success)
@@ -901,14 +901,23 @@ namespace TitanDatabase
                             existingAccount.characters.Remove(existingCharacter.id);
                             await existingAccount.Put();
                         }
-                        existingCharacter.accountId = account.id;
+                        if (account != null)
+                        {
+                            existingCharacter.accountId = account.id;
+                            account.characters.Add(existingCharacter.id);
+                            await account.Put();
+                        }
+                        else
+                        {
+                            existingCharacter.accountId = 0;
+                        }
                         var saveResponse = await existingCharacter.Put();
-                        account.characters.Add(existingCharacter.id);
-                        await account.Put();
+
                         if (saveResponse.result == RequestResult.Success)
                         {
                             return new CreateCharacterResponse(existingCharacter, CreateCharacterResult.Success);
                         }
+
                         return new CreateCharacterResponse(null, CreateCharacterResult.CharacterNotPlayable);
                     }
                     return new CreateCharacterResponse(existingCharacter, CreateCharacterResult.Success);
@@ -919,8 +928,9 @@ namespace TitanDatabase
                     var character = new Character()
                     {
                         id = nftId,
-                        accountId = account.id,
+                        accountId = account != null ? account.id : 0,
                         type = type,
+                        skin = skin,
                         experience = 0,
                         level = 1,
                         stats = CreateCharacterStats(charInfo),
@@ -977,8 +987,12 @@ namespace TitanDatabase
                         character.itemIds[i] = createResponse.item.id;
                     }
 
-                    account.characters.Add(character.id);
-                    await account.Put();
+                    if (account != null)
+                    {
+                        account.characters.Add(character.id);
+                        await account.Put();
+                    }
+
                     await character.Put();
                     return new CreateCharacterResponse(character, CreateCharacterResult.Success);
                 default:

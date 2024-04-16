@@ -10,4 +10,7 @@ public class WebCharacterJson
 
     [JsonProperty("type")]
     public ushort type { get; set; }
+
+    [JsonProperty("skin")]
+    public ushort skin { get; set; }
 }
