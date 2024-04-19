@@ -175,7 +175,7 @@
     <Sfx type="shoot">sword-1</Sfx>
   </Object>
 
-  <Object id="0x5" name="Alchemist">
+  <Object id="0x5" name="Huggy">
     <Type>Character</Type>
 
     <Slots>Elixir, Robe, Accessory, Accessory</Slots>
@@ -221,7 +221,7 @@
     <Sfx type="shoot">throw</Sfx>
   </Object>
 
-  <Object id="0x6" name="Berserker">
+  <Object id="0x6" name="Walker">
     <Type>Character</Type>
 
     <Slots>Claymore, HeavyArmor, Accessory, Accessory</Slots>

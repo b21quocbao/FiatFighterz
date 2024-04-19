@@ -11,12 +11,6 @@ namespace World.Net.Handling
     {
         public override async void Handle(TnHello packet, Client connection)
         {
-            if (!NetConstants.BuildCanPlay(packet.buildVersion))
-            {
-                connection.SendAsync(new TnError("Update required to play"));
-                return;
-            }
-
             await connection.Login(packet);
         }
     }

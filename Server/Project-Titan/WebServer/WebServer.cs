@@ -508,16 +508,6 @@ namespace WebServer
 
             var version = query["version"];
             
-            if (version != null)
-            {
-                if (NetConstants.BuildAhead(version))
-                {
-                    return new WebServerListResponse(WebServerListResult.Success, new WebServerInfo[] {
-                        new WebServerInfo("Testing", "71.195.254.8", "71.195.254.8", ServerStatus.Normal)
-                    });
-                }
-            }
-
             return new WebServerListResponse(WebServerListResult.Success, serverList.infos);
         }
 
@@ -530,7 +520,14 @@ namespace WebServer
 
             var characters = await Character.List();
 
-            return new WebCharacterListResponse(WebCharacterListResult.Success, characters.item.Select(x => x.type).ToArray());
+            List<ushort> res = new List<ushort>();
+
+            for (int i = 0; i < characters.item.Count; ++i) {
+                res.Add(characters.item[i].type);
+                res.Add(characters.item[i].skin);
+            }
+
+            return new WebCharacterListResponse(WebCharacterListResult.Success, res.ToArray());
         }
 
         private async Task<object> HandleServerUpdate(HttpListenerContext context, NameValueCollection query)

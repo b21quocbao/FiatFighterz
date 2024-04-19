@@ -39,6 +39,8 @@ public static class WebClient
 
     private static string Web_Server_Url = Remote_Web_Server_Url;
 
+    public static string Build_Version = "1.1.1";
+
     private static HttpClient client = new HttpClient()
     {
         Timeout = TimeSpan.FromSeconds(15)
@@ -110,7 +112,7 @@ public static class WebClient
         SendRequest("v1/account/describe", new Dictionary<string, string>()
         {
             { "token", Client.RsaEncrypt(accessToken) },
-            { "version", NetConstants.Build_Version },
+            { "version", Build_Version },
         }, callback);
     }
 
@@ -150,7 +152,7 @@ public static class WebClient
     {
         var dict = new Dictionary<string, string>()
         {
-            { "version", NetConstants.Build_Version },
+            { "version", Build_Version },
         };
 
         SendRequest("v1/server/list", dict, callback);

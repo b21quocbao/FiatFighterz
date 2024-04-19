@@ -28,9 +28,9 @@ namespace TitanCore.Net
 
         public const int Max_Overworld_Players = 75;
 
-        public const string Build_Version = "1.9.0";
+        public const string Build_Version = "1.1.1";
 
-        public const string Required_Build_Version = "1.9.0";
+        public const string Required_Build_Version = "1.1.1";
 
         public const int Account_Reward_Goal_1 = 10;
 
@@ -187,23 +187,10 @@ namespace TitanCore.Net
             if (!TryParseBuildString(Required_Build_Version, out var currentVersions))
                 return false;
 
-            if (versions[0] < currentVersions[0] || versions[1] < currentVersions[1] || versions[2] < currentVersions[2])
+            if (versions[0] != currentVersions[0] || versions[1] != currentVersions[1] || versions[2] != currentVersions[2])
                 return false;
 
             return true;
-        }
-
-        public static bool BuildAhead(string buildVersion)
-        {
-            if (!TryParseBuildString(buildVersion, out var versions))
-                return false;
-            if (!TryParseBuildString(Build_Version, out var currentVersions))
-                return false;
-
-            var buildInt = versions[0] * 100_000 + versions[1] * 1000 + versions[2];
-            var currentBuildInt = currentVersions[0] * 100_000 + currentVersions[1] * 1000 + currentVersions[2];
-
-            return buildInt > currentBuildInt;
         }
 
         public static bool TryParseBuildString(string value, out int[] versions)

@@ -294,7 +294,7 @@ public class LoginMenu : MonoBehaviour
             }
             else if (describeResponse.item.result == WebDescribeResult.UpdateRequired)
             {
-                ApplicationAlert.Show("Uh oh..", $"An update is required to play!\nRequired: {describeResponse.item.requiredBuild}\nCurrent: {NetConstants.Build_Version}", UnverifiedButtonPressed, "Ok");
+                ApplicationAlert.Show("Uh oh..", $"An update is required to play!\nRequired: {describeResponse.item.requiredBuild}", UnverifiedButtonPressed, "Ok");
             }
             else if (describeResponse.item.result != WebDescribeResult.Success)
             {

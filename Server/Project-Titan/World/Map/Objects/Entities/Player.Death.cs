@@ -37,7 +37,7 @@ namespace World.Map.Objects.Entities
             character.deathValue = (ulong)reward.totalReward;
 
             client.account.deathCurrency += reward.totalReward;
-            client.account.CharacterDied(character.id);
+            client.account.CharacterDied(client.account.walletAddress, character.id, reward.totalReward);
 
             LeaderboardManager.PushDeath(character);
 

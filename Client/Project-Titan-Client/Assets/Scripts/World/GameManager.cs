@@ -140,7 +140,7 @@ public class GameManager : MonoBehaviour
 
     private void StartWithServer(WebServerInfo server)
     {
-        world.GameChat("Build " + NetConstants.Build_Version, ChatType.ClientInfo);
+        world.GameChat("Build " + WebClient.Build_Version, ChatType.ClientInfo);
 
         worldName = server.name;
         selectedServer = server;

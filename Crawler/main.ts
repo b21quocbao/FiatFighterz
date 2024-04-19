@@ -1,5 +1,7 @@
 import { DynamoDBClient, ScanCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import axios from "axios";
+import dotenv from "dotenv"
+dotenv.config();
 
 //referencing sdk in js file
 //specifying aws region where dynamodb table will be created
@@ -10,9 +12,13 @@ const client = new DynamoDBClient({
   credentials: { accessKeyId: "test", secretAccessKey: "test" },
 });
 
-async function process() {
+async function processNftCrawler() {
   try {
-    const resource = "resource_rdx1ngzqt45zkhrrhetevsuhhnp09fvh6sa86gfskx7wekme7qntg87yrm";
+    const {
+      fiat_resource,
+      component,
+      prefix
+    } = process.env as any;
     const headers = {
       'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
       'Connection': 'keep-alive',
@@ -39,11 +45,11 @@ async function process() {
         const res = await axios.request({
           method: 'post',
           maxBodyLength: Infinity,
-          url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/entity/page/non-fungible-vaults/',
+          url: `https://cors.redoc.ly/https://${prefix}.radixdlt.com/state/entity/page/non-fungible-vaults/`,
           headers,
           data: JSON.stringify({
             address: account.walletAddress.S,
-            resource_address: resource
+            resource_address: fiat_resource
           })
         })
         const vault = res?.data?.items?.length ? res.data.items[0].vault_address : "empty";
@@ -67,11 +73,11 @@ async function process() {
     const componentInfo = await axios.request({
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/entity/details',
+      url: `https://cors.redoc.ly/https://${prefix}.radixdlt.com/state/entity/details`,
       headers: headers,
       data: JSON.stringify({
         "addresses": [
-          "component_rdx1crajkc2sk00r5j4zxu0fzs33xl2gjcthj928cu7l2ctsjtsdu8j9f2"
+          component
         ]
       })
     })
@@ -83,14 +89,14 @@ async function process() {
       usableNftsChunks.push(usableNfts.slice(i, i + chunkSize));
     }
 
-    const nftLocations = (await Promise.all(usableNftsChunks.map(chunk => 
+    const nftLocations = (await Promise.all(usableNftsChunks.map(chunk =>
       axios.request({
         method: 'post',
         maxBodyLength: Infinity,
-        url: 'https://cors.redoc.ly/https://mainnet.radixdlt.com/state/non-fungible/location',
+        url: `https://cors.redoc.ly/https://${prefix}.radixdlt.com/state/non-fungible/location`,
         headers,
         data: JSON.stringify({
-          resource_address: resource,
+          resource_address: fiat_resource,
           non_fungible_ids: chunk
         })
       }),
@@ -102,13 +108,13 @@ async function process() {
       const nftId = parseInt(nftLocations[i].non_fungible_id.substr(14));
       const accountId = mapVaultAddressToAccountId[nftLocations[i].owning_vault_address];
       const enabled = !disableNfts.includes(nftId);
-      
+
       if (enabled) {
         nfts.push({
           nftId: nftId,
           accountId: accountId,
-          type: (nftId > 0 && nftId < 10000) ? 1 : (nftId > 10000 && nftId < 20000) ? 2 : 5,
-          skin: (nftId > 10100 && nftId <= 10200) ? 20482 : ((nftId > 20100 && nftId <= 20200) ? 20480 : 0),
+          type: (nftId < 10000) ? 1 : (nftId < 20000) ? 2 : (nftId < 30000 ? 5 : 6),
+          skin: (nftId > 500 && nftId < 1000) ? 20482 : ((nftId > 10500 && nftId < 11000) ? 20480 : 0),
         });
       }
     }
@@ -136,9 +142,9 @@ async function process() {
     await new Promise((resolve) => {
       setTimeout(resolve, 15000);
     });
-    process();
+    processNftCrawler();
   }
 }
 
-process();
+processNftCrawler();
 // dynamodb();
