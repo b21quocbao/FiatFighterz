@@ -1,6 +1,6 @@
 # FiatFighterz
 
-`Source is provided as-is and contains known bad practices`
+The idea is to bring the open-source game [Trials Of Titan](https://github.com/Unnamed-Studios-LLC/Trials-Of-Titan) with a name of FiatFighterz in Radix chain web3 world game.
 
 ## Setup
 
